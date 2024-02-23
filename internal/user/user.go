@@ -31,14 +31,14 @@ func nameValidation(name string) error {
 		return err
 	}
 	if !isValid {
-		return errors.New("the name is not valid")
+		return errors.New("name is not valid")
 	}
 	return nil
 }
 
 func ageValidation(age int) error {
 	if age < 18 || age > 100 {
-		return errors.New("the age is not valid")
+		return errors.New("age is not valid")
 	}
 	return nil
 }
@@ -49,7 +49,7 @@ func documentValidation(documentNumber string) error {
 		return err
 	}
 	if !isValid {
-		return errors.New("the CPF is not valid")
+		return errors.New("CPF is not valid")
 	}
 	return nil
 }
@@ -60,7 +60,7 @@ func emailValidation(email string) error {
 		return err
 	}
 	if !isValid {
-		return errors.New("the email is not valid")
+		return errors.New("email is not valid")
 	}
 	return nil
 }
@@ -93,7 +93,7 @@ func countryValidation(country string) error {
 		return err
 	}
 	if !isValid {
-		return errors.New("the phone number is not valid")
+		return errors.New("the country is not valid")
 	}
 	return nil
 }
@@ -104,18 +104,18 @@ func numberValidation(number string) error {
 		return err
 	}
 	if !isValid {
-		return errors.New("the phone number is not valid")
+		return errors.New("the number is not valid")
 	}
 	return nil
 }
 
-func complementValidation(complement string) error {
-	isValid, err := regexp.MatchString("", complement)
-	if err != nil {
-		return err
-	}
-	if !isValid {
-		return errors.New("the phone number is not valid")
-	}
-	return nil
-}
+//func complementValidation(complement string) error {
+//	isValid, err := regexp.MatchString("", complement)
+//	if err != nil {
+//		return err
+//	}
+//	if !isValid {
+//		return errors.New("the phone number is not valid")
+//	}
+//	return nil
+//}
