@@ -190,7 +190,7 @@ func TestValidationPhone(t *testing.T) {
 			hasError: true,
 		},
 		{
-			input:    "",
+			input:    "1",
 			hasError: true,
 		},
 	}
