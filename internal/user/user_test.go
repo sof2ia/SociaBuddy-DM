@@ -190,13 +190,132 @@ func TestValidationPhone(t *testing.T) {
 			hasError: true,
 		},
 		{
-			input:    "1",
+			input:    "",
 			hasError: true,
 		},
 	}
 	var i int
 	for i = 0; i < len(tests); i++ {
 		actualError := phoneValidation(tests[i].input)
+		if (actualError == nil && tests[i].hasError == true) || (actualError != nil && tests[i].hasError == false) {
+			t.Fatalf("the test is failed %d: %v", i, actualError)
+		}
+		t.Logf("the test is passed %d", i)
+	}
+}
+
+func TestValidationZipCode(t *testing.T) {
+	tests := []argsStr{
+		{
+			input:    "12245-890",
+			hasError: false,
+		},
+		{
+			input:    "112453-123",
+			hasError: true,
+		},
+		{
+			input:    "1234-890",
+			hasError: true,
+		},
+		{
+			input:    "12345-1234",
+			hasError: true,
+		},
+		{
+			input:    "12345-12",
+			hasError: true,
+		},
+		{
+			input:    "12345678",
+			hasError: true,
+		},
+		{
+			input:    "",
+			hasError: true,
+		},
+	}
+	var i int
+	for i = 0; i < len(tests); i++ {
+		actualError := zipCodeValidation(tests[i].input)
+		if (actualError == nil && tests[i].hasError == true) || (actualError != nil && tests[i].hasError == false) {
+			t.Fatalf("the test is failed %d: %v", i, actualError)
+		}
+		t.Logf("the test is passed %d", i)
+	}
+}
+
+func TestValidationCountry(t *testing.T) {
+	tests := []argsStr{
+		{
+			input:    "Brasil",
+			hasError: false,
+		},
+		{
+			input:    "Argentina",
+			hasError: true,
+		},
+		{
+			input:    "Brasilia",
+			hasError: true,
+		},
+		{
+			input:    "no Brasil",
+			hasError: true,
+		},
+		{
+			input:    "Brazil",
+			hasError: true,
+		},
+		{
+			input:    "",
+			hasError: true,
+		},
+	}
+	var i int
+	for i = 0; i < len(tests); i++ {
+		actualError := countryValidation(tests[i].input)
+		if (actualError == nil && tests[i].hasError == true) || (actualError != nil && tests[i].hasError == false) {
+			t.Fatalf("the test is failed %d: %v", i, actualError)
+		}
+		t.Logf("the test is passed %d", i)
+	}
+}
+
+func TestValidationNumber(t *testing.T) {
+	tests := []argsStr{
+		{
+			input:    "234",
+			hasError: false,
+		},
+		{
+			input:    "12",
+			hasError: false,
+		},
+		{
+			input:    "1",
+			hasError: false,
+		},
+		{
+			input:    "0",
+			hasError: true,
+		},
+		{
+			input:    "1A",
+			hasError: true,
+		},
+		{
+			input:    "12345678",
+			hasError: true,
+		},
+		{
+			input:    "",
+			hasError: true,
+		},
+	}
+	var i int
+	for i = 0; i < len(tests); i++ {
+		actualError := numberValidation(tests[i].input)
 		if (actualError == nil && tests[i].hasError == true) || (actualError != nil && tests[i].hasError == false) {
 			t.Fatalf("the test is failed %d: %v", i, actualError)
 		}

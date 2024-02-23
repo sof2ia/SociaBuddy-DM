@@ -55,7 +55,7 @@ func documentValidation(documentNumber string) error {
 }
 
 func emailValidation(email string) error {
-	isValid, err := regexp.MatchString("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", email)
+	isValid, err := regexp.MatchString("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$", email)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,51 @@ func emailValidation(email string) error {
 }
 
 func phoneValidation(phone string) error {
-	isValid, err := regexp.MatchString("^\\+55[ ]\\d{2}[ ]9\\d{4}[ ]\\d{4}$", phone)
+	isValid, err := regexp.MatchString("^\\+55 \\d{2} 9\\d{4} \\d{4}$", phone)
+	if err != nil {
+		return err
+	}
+	if !isValid {
+		return errors.New("the phone number is not valid")
+	}
+	return nil
+}
+
+func zipCodeValidation(zipCode string) error {
+	isValid, err := regexp.MatchString("^[0-9]{5}-[0-9]{3}$", zipCode)
+	if err != nil {
+		return err
+	}
+	if !isValid {
+		return errors.New("the zip code is not valid")
+	}
+	return nil
+}
+
+func countryValidation(country string) error {
+	isValid, err := regexp.MatchString("^Brasil$", country)
+	if err != nil {
+		return err
+	}
+	if !isValid {
+		return errors.New("the phone number is not valid")
+	}
+	return nil
+}
+
+func numberValidation(number string) error {
+	isValid, err := regexp.MatchString("^[1-9]{1,4}$", number)
+	if err != nil {
+		return err
+	}
+	if !isValid {
+		return errors.New("the phone number is not valid")
+	}
+	return nil
+}
+
+func complementValidation(complement string) error {
+	isValid, err := regexp.MatchString("", complement)
 	if err != nil {
 		return err
 	}
