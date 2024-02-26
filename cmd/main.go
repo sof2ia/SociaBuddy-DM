@@ -36,6 +36,7 @@ func main() {
 	router.Delete("/v1/user/{id}", ser.DeleteUser)
 	log.Println("server's running on the port: 8081")
 	err = http.ListenAndServe(":8081", router)
+
 	if err != nil {
 		log.Fatal(err)
 		return

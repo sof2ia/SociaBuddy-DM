@@ -128,7 +128,7 @@ func TestValidationDocument(t *testing.T) {
 func TestValidationEmail(t *testing.T) {
 	tests := []argsStr{
 		{
-			input:    "user1@gmail.com",
+			input:    "user.1@gmail.com",
 			hasError: false,
 		},
 		{
@@ -141,16 +141,24 @@ func TestValidationEmail(t *testing.T) {
 			hasError: true,
 		},
 		{
-			input:    "user4@gmai",
+			input:    "user4@gmail",
 			hasError: true,
 		},
 		{
-			input:    "user5@gmai.",
+			input:    "user5@gmail.",
 			hasError: true,
 		},
 		{
 			input:    "user6@outlook.com",
 			hasError: false,
+		},
+		{
+			input:    "user7@@outlook.com",
+			hasError: true,
+		},
+		{
+			input:    "user8@hotline/com",
+			hasError: true,
 		},
 	}
 	var i int
