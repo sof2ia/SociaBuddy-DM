@@ -94,6 +94,7 @@ func (r *repository) GetUserByID(idUser int) (*User, error) {
 	}
 	return &user, nil
 }
+
 func (r *repository) GetUserByEmail(emailUser string) (*User, error) {
 	rows, err := r.db.Query("SELECT * FROM Users WHERE Email = ?", emailUser)
 	if err != nil {

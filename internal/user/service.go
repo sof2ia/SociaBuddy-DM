@@ -20,6 +20,40 @@ func (s *service) CreateUser(user User) (*User, error) {
 		return nil, err
 	}
 	user.Address = *addressUser
+
+	err = nameValidation(user.Name)
+	if err != nil {
+		return nil, err
+	}
+	err = ageValidation(user.Age)
+	if err != nil {
+		return nil, err
+	}
+	err = documentValidation(user.DocumentNumber)
+	if err != nil {
+		return nil, err
+	}
+	err = emailValidation(user.Email)
+	if err != nil {
+		return nil, err
+	}
+	err = phoneValidation(user.Phone)
+	if err != nil {
+		return nil, err
+	}
+	err = zipCodeValidation(user.Address.ZipCode)
+	if err != nil {
+		return nil, err
+	}
+	err = countryValidation(user.Address.Country)
+	if err != nil {
+		return nil, err
+	}
+	err = numberValidation(user.Address.Number)
+	if err != nil {
+		return nil, err
+	}
+
 	newUser, err := s.UserRepository.CreateUser(user)
 	if err != nil {
 		return nil, err

@@ -37,6 +37,7 @@ func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	user, err := s.userService.CreateUser(newUser)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

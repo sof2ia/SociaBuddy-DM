@@ -29,6 +29,27 @@ type argEmail struct {
 	hasError error
 }
 
+type argCreate struct {
+	name     string
+	newUser  User
+	output   *User
+	hasError error
+}
+
+type argUpdate struct {
+	name     string
+	newUser  User
+	id       int
+	output   *User
+	hasError error
+}
+
+type argDelete struct {
+	name     string
+	id       int
+	hasError error
+}
+
 func TestGetUser(t *testing.T) {
 	mockDB, mock, err := sqlmock.New()
 	if err != nil {
@@ -192,7 +213,7 @@ func TestGetUserByEmail(t *testing.T) {
 			name:     "GetUserByID() when ID wasn't found",
 			email:    "name.second@gmail.com",
 			output:   nil,
-			hasError: errors.New("the ID is not found"),
+			hasError: errors.New("the email is not found"),
 		},
 	}
 	for _, tt := range test {
@@ -202,6 +223,229 @@ func TestGetUserByEmail(t *testing.T) {
 			if !reflect.DeepEqual(users, tt.output) {
 				t.Fatalf("expected %+v, got %+v", tt.output, users)
 			}
+			if (err != nil && tt.hasError == nil) || (err == nil && tt.hasError != nil) {
+				t.Fatalf("expeced error %+v, got %+v", tt.hasError, err)
+			}
+		})
+	}
+}
+
+func TestCreateUser(t *testing.T) {
+	mockDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("the creation of mock is failed: %+v", mockDB)
+	}
+	defer func(mockDB *sql.DB) {
+		err := mockDB.Close()
+		if err != nil {
+		}
+	}(mockDB)
+	rep := NewRepository(mockDB)
+	mock.ExpectExec("INSERT INTO Users").WithArgs("Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 12345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C").WillReturnResult(sqlmock.NewResult(1, 1))
+	result := sqlmock.NewRows([]string{
+		"ID", "Name", "Age", "DocumentNumber", "Email", "Phone", "ZipCode", "Country", "State", "City", "Neighborhood", "Street", "Number", "Complement",
+	}).AddRow(1, "Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 12345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C")
+	mock.ExpectQuery("SELECT \\* FROM Users WHERE ID = ?").WithArgs(1).WillReturnRows(result)
+	test := []argCreate{
+		{
+			name: "CreateUser() is succeed",
+			newUser: User{
+				ID:             1,
+				Name:           "Name First",
+				Age:            35,
+				DocumentNumber: "123.345.567-89",
+				Email:          "name.first@gmail.com",
+				Phone:          "+55 11 12345 6789",
+				Address: Address{
+					ZipCode:      "12246-260",
+					Country:      "Brasil",
+					State:        "SP",
+					City:         "São José dos Campos",
+					Neighborhood: "Parque Residencial Aquarius",
+					Street:       "Avenida Salmão",
+					Number:       "456",
+					Complement:   "C",
+				},
+			},
+			output: &User{
+				ID:             1,
+				Name:           "Name First",
+				Age:            35,
+				DocumentNumber: "123.345.567-89",
+				Email:          "name.first@gmail.com",
+				Phone:          "+55 11 12345 6789",
+				Address: Address{
+					ZipCode:      "12246-260",
+					Country:      "Brasil",
+					State:        "SP",
+					City:         "São José dos Campos",
+					Neighborhood: "Parque Residencial Aquarius",
+					Street:       "Avenida Salmão",
+					Number:       "456",
+					Complement:   "C",
+				},
+			},
+			hasError: nil,
+		},
+		{
+			name: "CreateUser() is failed",
+			newUser: User{
+				ID:             1,
+				Name:           "Name First",
+				Age:            35,
+				DocumentNumber: "123.345.567-89",
+				Email:          "name.first@gmail.com",
+				Phone:          "+55 11 12345 6789",
+				Address: Address{
+					ZipCode:      "12246-260",
+					Country:      "Brasil",
+					State:        "SP",
+					City:         "São José dos Campos",
+					Neighborhood: "Parque Residencial Aquarius",
+					Street:       "Avenida Salmão",
+					Number:       "456",
+					Complement:   "C",
+				},
+			},
+			output:   nil,
+			hasError: errors.New("new user wasn't found"),
+		},
+	}
+	for _, tt := range test {
+		t.Run(tt.name, func(t *testing.T) {
+			users, err := rep.CreateUser(tt.newUser)
+			log.Printf("user: %v, err: %v", users, err)
+			if !reflect.DeepEqual(users, tt.output) {
+				t.Fatalf("expected %+v, got %+v", tt.output, users)
+			}
+			if (err != nil && tt.hasError == nil) || (err == nil && tt.hasError != nil) {
+				t.Fatalf("expeced error %+v, got %+v", tt.hasError, err)
+			}
+		})
+	}
+}
+
+func TestUpdateUser(t *testing.T) {
+	mockDB, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	if err != nil {
+		t.Fatalf("the creation of mock is failed: %+v", mockDB)
+	}
+	defer func(mockDB *sql.DB) {
+		err := mockDB.Close()
+		if err != nil {
+		}
+	}(mockDB)
+	rep := NewRepository(mockDB)
+	mock.ExpectExec("UPDATE Users SET Name = ?, Age = ?, DocumentNumber = ?, Email = ?, Phone = ?, ZipCode = ?, Country = ?, State = ?, City = ?, Neighborhood = ?, Street = ?, Number = ?, Complement = ? WHERE ID = ?").WithArgs("Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 12345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C", 1).WillReturnResult(sqlmock.NewResult(1, 1))
+	test := []argUpdate{
+		{
+			name: "UpdateUser() is succeed",
+			newUser: User{
+				ID:             1,
+				Name:           "Name First",
+				Age:            35,
+				DocumentNumber: "123.345.567-89",
+				Email:          "name.first@gmail.com",
+				Phone:          "+55 11 12345 6789",
+				Address: Address{
+					ZipCode:      "12246-260",
+					Country:      "Brasil",
+					State:        "SP",
+					City:         "São José dos Campos",
+					Neighborhood: "Parque Residencial Aquarius",
+					Street:       "Avenida Salmão",
+					Number:       "456",
+					Complement:   "C",
+				},
+			},
+			id: 1,
+			output: &User{
+				ID:             1,
+				Name:           "Name First",
+				Age:            35,
+				DocumentNumber: "123.345.567-89",
+				Email:          "name.first@gmail.com",
+				Phone:          "+55 11 12345 6789",
+				Address: Address{
+					ZipCode:      "12246-260",
+					Country:      "Brasil",
+					State:        "SP",
+					City:         "São José dos Campos",
+					Neighborhood: "Parque Residencial Aquarius",
+					Street:       "Avenida Salmão",
+					Number:       "456",
+					Complement:   "C",
+				},
+			},
+			hasError: nil,
+		},
+		{
+			name: "UpdateUser() is failed",
+			newUser: User{
+				ID:             1,
+				Name:           "Name First",
+				Age:            35,
+				DocumentNumber: "123.345.567-89",
+				Email:          "name.first@gmail.com",
+				Phone:          "+55 11 12345 6789",
+				Address: Address{
+					ZipCode:      "12246-260",
+					Country:      "Brasil",
+					State:        "SP",
+					City:         "São José dos Campos",
+					Neighborhood: "Parque Residencial Aquarius",
+					Street:       "Avenida Salmão",
+					Number:       "456",
+					Complement:   "C",
+				},
+			},
+			id:       1,
+			output:   nil,
+			hasError: errors.New("the user wasn't updated"),
+		},
+	}
+	for _, tt := range test {
+		t.Run(tt.name, func(t *testing.T) {
+			users, err := rep.UpdateUser(tt.newUser, tt.id)
+			log.Printf("user: %v, err: %v", users, err)
+			if !reflect.DeepEqual(users, tt.output) {
+				t.Fatalf("expected %+v, got %+v", tt.output, users)
+			}
+			if (err != nil && tt.hasError == nil) || (err == nil && tt.hasError != nil) {
+				t.Fatalf("expeced error %+v, got %+v", tt.hasError, err)
+			}
+		})
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	mockDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("the creation of mock is failed: %+v", mockDB)
+	}
+	defer func(mockDB *sql.DB) {
+		err := mockDB.Close()
+		if err != nil {
+		}
+	}(mockDB)
+	rep := NewRepository(mockDB)
+	mock.ExpectExec("DELETE FROM Users WHERE ID = ?").WithArgs(1).WillReturnResult(sqlmock.NewResult(1, 1))
+	test := []argDelete{
+		{
+			name:     "DeleteUser() is succeed",
+			id:       1,
+			hasError: nil,
+		},
+		{
+			name:     "DeleteUser() is failed",
+			id:       1,
+			hasError: errors.New("the user wasn't deleted"),
+		},
+	}
+	for _, tt := range test {
+		t.Run(tt.name, func(t *testing.T) {
+			err := rep.DeleteUser(tt.id)
+			log.Printf("err: %v", err)
 			if (err != nil && tt.hasError == nil) || (err == nil && tt.hasError != nil) {
 				t.Fatalf("expeced error %+v, got %+v", tt.hasError, err)
 			}

@@ -108,14 +108,3 @@ func numberValidation(number string) error {
 	}
 	return nil
 }
-
-//func complementValidation(complement string) error {
-//	isValid, err := regexp.MatchString("", complement)
-//	if err != nil {
-//		return err
-//	}
-//	if !isValid {
-//		return errors.New("the phone number is not valid")
-//	}
-//	return nil
-//}
