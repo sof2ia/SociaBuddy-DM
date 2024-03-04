@@ -559,7 +559,7 @@ func TestGetFollowingByUserID(t *testing.T) {
 	rep := NewRepository(mockDB)
 	result := sqlmock.NewRows([]string{
 		"ID", "Name", "Age", "DocumentNumber", "Email", "Phone", "ZipCode", "Country", "State", "City", "Neighborhood", "Street", "Number", "Complement",
-	}).AddRow(4, "Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 12345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C")
+	}).AddRow(2, "Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 12345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C")
 	mock.ExpectQuery("SELECT \\* FROM Users INNER JOIN Connection ON Users.ID = Connection.idFollowing WHERE Connection.idFollower = \\? ").WithArgs(3).WillReturnRows(result)
 	test := []argGetFollow{
 		{
@@ -567,7 +567,7 @@ func TestGetFollowingByUserID(t *testing.T) {
 			id:   3,
 			output: []User{
 				{
-					ID:             4,
+					ID:             2,
 					Name:           "Name First",
 					Age:            35,
 					DocumentNumber: "123.345.567-89",
@@ -628,5 +628,108 @@ func TestGetFollowingByUserID(t *testing.T) {
 }
 
 func TestGetUserFollowers(t *testing.T) {
+	mockDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("the creation of mock is failed %v", err)
+	}
+	defer func(mockDB *sql.DB) {
+		err := mockDB.Close()
+		if err != nil {
 
+		}
+	}(mockDB)
+	rep := NewRepository(mockDB)
+	result := sqlmock.NewRows([]string{
+		"ID", "Name", "Age", "DocumentNumber", "Email", "Phone", "ZipCode", "Country", "State", "City", "Neighborhood", "Street", "Number", "Complement",
+	}).AddRow(2, "Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 12345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C")
+	mock.ExpectQuery("SELECT \\* FROM Users INNER JOIN Connection ON Users.ID = Connection.idFollower WHERE Connection.idFollowing = \\? ").WithArgs(1).WillReturnRows(result)
+	test := []argGetFollow{
+		{
+			name: "GetUserFollowers() is succeed",
+			id:   1,
+			output: []User{
+				{
+					ID:             2,
+					Name:           "Name First",
+					Age:            35,
+					DocumentNumber: "123.345.567-89",
+					Email:          "name.first@gmail.com",
+					Phone:          "+55 11 12345 6789",
+					Address: Address{
+						ZipCode:      "12246-260",
+						Country:      "Brasil",
+						State:        "SP",
+						City:         "São José dos Campos",
+						Neighborhood: "Parque Residencial Aquarius",
+						Street:       "Avenida Salmão",
+						Number:       "456",
+						Complement:   "C",
+					},
+				},
+			},
+			hasError: nil,
+		},
+		{
+			name: "GetUserFollowers() is failed - wrong id",
+			id:   1,
+			output: []User{
+				{
+					ID:             4,
+					Name:           "Name First",
+					Age:            35,
+					DocumentNumber: "123.345.567-89",
+					Email:          "name.first@gmail.com",
+					Phone:          "+55 11 12345 6789",
+					Address: Address{
+						ZipCode:      "12246-260",
+						Country:      "Brasil",
+						State:        "SP",
+						City:         "São José dos Campos",
+						Neighborhood: "Parque Residencial Aquarius",
+						Street:       "Avenida Salmão",
+						Number:       "456",
+						Complement:   "C",
+					},
+				},
+			},
+			hasError: errors.New("the user does not follow this id"),
+		},
+		{
+			name: "GetUserFollowers() is failed - the same id",
+			id:   1,
+			output: []User{
+				{
+					ID:             1,
+					Name:           "Name First",
+					Age:            35,
+					DocumentNumber: "123.345.567-89",
+					Email:          "name.first@gmail.com",
+					Phone:          "+55 11 12345 6789",
+					Address: Address{
+						ZipCode:      "12246-260",
+						Country:      "Brasil",
+						State:        "SP",
+						City:         "São José dos Campos",
+						Neighborhood: "Parque Residencial Aquarius",
+						Street:       "Avenida Salmão",
+						Number:       "456",
+						Complement:   "C",
+					},
+				},
+			},
+			hasError: errors.New("the id follows itself"),
+		},
+	}
+	for _, tt := range test {
+		t.Run(tt.name, func(t *testing.T) {
+			users, err := rep.GetUserFollowers(tt.id)
+			log.Printf("users: %+v, err: %+v", users, err)
+			if !reflect.DeepEqual(users, tt.output) {
+				t.Fatalf("expected %+v, got %+v", tt.output, users)
+			}
+			if (err != nil && tt.hasError == nil) || (err == nil && tt.hasError != nil) {
+				t.Fatalf("expeced error %+v, got %+v", tt.hasError, err)
+			}
+		})
+	}
 }

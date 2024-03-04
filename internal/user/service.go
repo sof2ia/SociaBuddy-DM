@@ -14,9 +14,12 @@ type Service interface {
 	DeleteUser(idUser int) error
 	FollowUser(idFollower int, idFollowing int) error
 	DeleteConnection(idFollower int, idFollowing int) error
+	GetFollowingByUserID(idUser int) ([]User, error)
+	GetUserFollowers(idUser int) ([]User, error)
 }
 
 func (s *service) CreateUser(user User) (*User, error) {
+
 	err := nameValidation(user.Name)
 	if err != nil {
 		return nil, err
@@ -121,6 +124,21 @@ func (s *service) DeleteConnection(idFollower int, idFollowing int) error {
 		return err
 	}
 	return nil
+}
+
+func (s *service) GetFollowingByUserID(idUser int) ([]User, error) {
+	users, err := s.UserRepository.GetFollowingByUserID(idUser)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+func (s *service) GetUserFollowers(idUser int) ([]User, error) {
+	users, err := s.UserRepository.GetUserFollowers(idUser)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func NewService(userRepository Repository, userFacade Facade) Service {
