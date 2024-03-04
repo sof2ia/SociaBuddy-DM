@@ -25,6 +25,12 @@ type Address struct {
 	Complement   string `json:"complement"`
 }
 
+type Connection struct {
+	ID          int
+	IdFollower  int
+	IdFollowing int
+}
+
 func nameValidation(name string) error {
 	isValid, err := regexp.MatchString("[A-Z][a-zA-Z]{2,} [A-Z][a-zA-Z ]+", name)
 	if err != nil {

@@ -12,16 +12,12 @@ type Service interface {
 	GetUserByEmail(emailUser string) (*User, error)
 	UpdateUser(user User, idUser int) (*User, error)
 	DeleteUser(idUser int) error
+	FollowUser(idFollower int, idFollowing int) error
+	DeleteConnection(idFollower int, idFollowing int) error
 }
 
 func (s *service) CreateUser(user User) (*User, error) {
-	addressUser, err := s.UserFacade.FindCep(user.Address.ZipCode, user.Address.Number, user.Address.Complement)
-	if err != nil {
-		return nil, err
-	}
-	user.Address = *addressUser
-
-	err = nameValidation(user.Name)
+	err := nameValidation(user.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -53,6 +49,12 @@ func (s *service) CreateUser(user User) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	addressUser, err := s.UserFacade.FindCep(user.Address.ZipCode, user.Address.Number, user.Address.Complement)
+	if err != nil {
+		return nil, err
+	}
+	user.Address = *addressUser
 
 	newUser, err := s.UserRepository.CreateUser(user)
 	if err != nil {
@@ -100,6 +102,21 @@ func (s *service) UpdateUser(user User, idUser int) (*User, error) {
 
 func (s *service) DeleteUser(idUser int) error {
 	err := s.UserRepository.DeleteUser(idUser)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) FollowUser(idFollower int, idFollowing int) error {
+	err := s.UserRepository.FollowUser(idFollower, idFollowing)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (s *service) DeleteConnection(idFollower int, idFollowing int) error {
+	err := s.UserRepository.DeleteConnection(idFollower, idFollowing)
 	if err != nil {
 		return err
 	}

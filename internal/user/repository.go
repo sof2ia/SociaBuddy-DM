@@ -11,6 +11,10 @@ type Repository interface {
 	GetUserByEmail(emailUser string) (*User, error)
 	UpdateUser(user User, idUser int) (*User, error)
 	DeleteUser(idUser int) error
+	FollowUser(idFollower int, idFollowing int) error
+	DeleteConnection(idFollower int, idFollowing int) error
+	GetFollowingByUserID(idUser int) ([]User, error)
+	GetUserFollowers(idUser int) ([]User, error)
 }
 type repository struct {
 	db *sql.DB
@@ -144,6 +148,83 @@ func (r *repository) DeleteUser(idUser int) error {
 		return err
 	}
 	return nil
+}
+
+func (r *repository) FollowUser(idFollower int, idFollowing int) error {
+	_, err := r.db.Exec(`INSERT INTO Connection ("IdFollower", "IdFollowing") VALUES (?, ?)`, idFollower, idFollowing)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (r *repository) DeleteConnection(idFollower int, idFollowing int) error {
+	_, err := r.db.Exec("DELETE FROM Connection WHERE IdFollower = ? AND IdFollowing = ?", idFollower, idFollowing)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *repository) GetFollowingByUserID(idUser int) ([]User, error) {
+	row, err := r.db.Query("SELECT * FROM Users INNER JOIN Connection ON Users.ID = Connection.idFollowing WHERE Connection.idFollower = ? ", idUser)
+	if err != nil {
+		return nil, err
+	}
+	var listUser []User
+	for row.Next() {
+		var user User
+		err = row.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Age,
+			&user.DocumentNumber,
+			&user.Email,
+			&user.Phone,
+			&user.Address.ZipCode,
+			&user.Address.Country,
+			&user.Address.State,
+			&user.Address.City,
+			&user.Address.Neighborhood,
+			&user.Address.Street,
+			&user.Address.Number,
+			&user.Address.Complement)
+		if err != nil {
+			return nil, err
+		}
+		listUser = append(listUser, user)
+	}
+	return listUser, nil
+}
+
+func (r *repository) GetUserFollowers(idUser int) ([]User, error) {
+	row, err := r.db.Query("SELECT * FROM Users INNER JOIN Connection ON Users.ID = Connection.idFollower WHERE Connection.idFollowing = ? ", idUser)
+	if err != nil {
+		return nil, err
+	}
+	var listUser []User
+	for row.Next() {
+		var user User
+		err = row.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Age,
+			&user.DocumentNumber,
+			&user.Email,
+			&user.Phone,
+			&user.Address.ZipCode,
+			&user.Address.Country,
+			&user.Address.State,
+			&user.Address.City,
+			&user.Address.Neighborhood,
+			&user.Address.Street,
+			&user.Address.Number,
+			&user.Address.Complement)
+		if err != nil {
+			return nil, err
+		}
+		listUser = append(listUser, user)
+	}
+	return listUser, nil
 }
 
 func NewRepository(db *sql.DB) Repository {
