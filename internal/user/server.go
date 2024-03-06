@@ -193,6 +193,7 @@ func (s *Server) GetFollowingByUserID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(user)
 	if err != nil {
@@ -218,6 +219,20 @@ func (s *Server) GetUserFollowers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+}
+
+func (s *Server) GetFollow(w http.ResponseWriter, r *http.Request) {
+	follower := r.URL.Query().Get("follower")
+	isFollowing, err := strconv.ParseBool(follower)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if isFollowing {
+		s.GetFollowingByUserID(w, r)
+	} else {
+		s.GetUserFollowers(w, r)
 	}
 }
 

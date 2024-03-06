@@ -37,8 +37,7 @@ func main() {
 
 	router.Put("/v1/user/{id}/following/{following_id}", ser.FollowUser)
 	router.Delete("/v1/user/{id}/following/{following_id}", ser.DeleteConnection)
-	router.Get("/v1/user/{id}/following?follower=true", ser.GetFollowingByUserID)
-	router.Get("/v1/user/{id}/following?follower=false", ser.GetUserFollowers)
+	router.Get("/v1/user/{id}/following", ser.GetFollow)
 
 	log.Println("server's running on the port: 8081")
 	err = http.ListenAndServe(":8081", router)

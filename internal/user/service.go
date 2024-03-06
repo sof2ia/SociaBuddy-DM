@@ -1,5 +1,9 @@
 package user
 
+import (
+	"errors"
+)
+
 type service struct {
 	UserRepository Repository
 	UserFacade     Facade
@@ -112,13 +116,33 @@ func (s *service) DeleteUser(idUser int) error {
 }
 
 func (s *service) FollowUser(idFollower int, idFollowing int) error {
-	err := s.UserRepository.FollowUser(idFollower, idFollowing)
+	if idFollower == idFollowing {
+		return errors.New("the id cannot follow itself")
+	}
+
+	// suggestion:
+	// - prevent the connection between users that are not listed in the Users table //
+
+	followers, err := s.UserRepository.GetFollowingByUserID(idFollower)
+	//log.Printf("follower's list: ", followers)
+	for i := 0; i < len(followers); i++ {
+		if idFollowing == followers[i].ID {
+			return errors.New("the id cannot follow user more than once")
+		}
+	}
+
+	err = s.UserRepository.FollowUser(idFollower, idFollowing)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 func (s *service) DeleteConnection(idFollower int, idFollowing int) error {
+
+	// suggestions:
+	// - check to see if the connection exists before deleting it //
+	// - delete all connections (follower <-> follower) with the user in case his account has been deleted //
+
 	err := s.UserRepository.DeleteConnection(idFollower, idFollowing)
 	if err != nil {
 		return err
@@ -135,6 +159,7 @@ func (s *service) GetFollowingByUserID(idUser int) ([]User, error) {
 }
 func (s *service) GetUserFollowers(idUser int) ([]User, error) {
 	users, err := s.UserRepository.GetUserFollowers(idUser)
+
 	if err != nil {
 		return nil, err
 	}
