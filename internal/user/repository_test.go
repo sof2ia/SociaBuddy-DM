@@ -560,7 +560,7 @@ func TestGetFollowingByUserID(t *testing.T) {
 	result := sqlmock.NewRows([]string{
 		"ID", "Name", "Age", "DocumentNumber", "Email", "Phone", "ZipCode", "Country", "State", "City", "Neighborhood", "Street", "Number", "Complement",
 	}).AddRow(2, "Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 12345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C")
-	mock.ExpectQuery("SELECT \\* FROM Users INNER JOIN Connection ON Users.ID = Connection.idFollowing WHERE Connection.idFollower = \\? ").WithArgs(3).WillReturnRows(result)
+	mock.ExpectQuery("SELECT \\* FROM Users INNER JOIN Connection ON Users.ID = Connection.idFollowing WHERE Connection.idFollower = \\?").WithArgs(3).WillReturnRows(result)
 	test := []argGetFollow{
 		{
 			name: "GetFollowingByUserID() is succeed",
@@ -587,31 +587,6 @@ func TestGetFollowingByUserID(t *testing.T) {
 			},
 			hasError: nil,
 		},
-		//{
-		//	name: "GetFollowingByUserID() is failed",
-		//	id:   4,
-		//	output: []User{
-		//		{
-		//			ID:             2,
-		//			Name:           "Name First",
-		//			Age:            35,
-		//			DocumentNumber: "123.345.567-89",
-		//			Email:          "name.first@gmail.com",
-		//			Phone:          "+55 11 12345 6789",
-		//			Address: Address{
-		//				ZipCode:      "12246-260",
-		//				Country:      "Brasil",
-		//				State:        "SP",
-		//				City:         "São José dos Campos",
-		//				Neighborhood: "Parque Residencial Aquarius",
-		//				Street:       "Avenida Salmão",
-		//				Number:       "456",
-		//				Complement:   "C",
-		//			},
-		//		},
-		//	},
-		//	hasError: errors.New("the id does not follow this user"),
-		//},
 		{
 			name:     "GetFollowingByUserID() is failed - has no following",
 			id:       7,

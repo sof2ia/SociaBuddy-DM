@@ -196,7 +196,7 @@ func (r *repository) GetFollowingByUserID(idUser int) ([]User, error) {
 	var listUser []User
 	for row.Next() {
 		var user User
-		var con Connection
+		//var con Connection
 		err = row.Scan(
 			&user.ID,
 			&user.Name,
@@ -212,9 +212,9 @@ func (r *repository) GetFollowingByUserID(idUser int) ([]User, error) {
 			&user.Address.Street,
 			&user.Address.Number,
 			&user.Address.Complement,
-			&con.ID,
-			&con.IdFollower,
-			&con.IdFollowing,
+			//&con.ID,
+			//&con.IdFollower,
+			//&con.IdFollowing,
 		)
 		if err != nil {
 			return nil, err
@@ -232,7 +232,7 @@ func (r *repository) GetUserFollowers(idUser int) ([]User, error) {
 	var listUser []User
 	for row.Next() {
 		var user User
-		var con Connection
+		//var con Connection
 		err = row.Scan(
 			&user.ID,
 			&user.Name,
@@ -248,9 +248,9 @@ func (r *repository) GetUserFollowers(idUser int) ([]User, error) {
 			&user.Address.Street,
 			&user.Address.Number,
 			&user.Address.Complement,
-			&con.ID,
-			&con.IdFollower,
-			&con.IdFollowing,
+			//&con.ID,
+			//&con.IdFollower,
+			//&con.IdFollowing,
 		)
 		if err != nil {
 			return nil, err

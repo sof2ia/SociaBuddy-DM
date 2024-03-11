@@ -2,8 +2,6 @@ package user
 
 import (
 	"errors"
-	"log"
-	"time"
 )
 
 type service struct {
@@ -132,9 +130,6 @@ func (s *service) FollowUser(idFollower int, idFollowing int) error {
 	if idFollower == idFollowing {
 		return errors.New("the id cannot follow itself")
 	}
-	log.Printf("start")
-	// suggestion:
-	// - prevent the connection between users that are not listed in the Users table //
 	accountFollower, err := s.UserRepository.GetUserByID(idFollower)
 	if err != nil {
 		return err
@@ -142,7 +137,6 @@ func (s *service) FollowUser(idFollower int, idFollowing int) error {
 	if accountFollower == nil {
 		return errors.New("id has no account")
 	}
-	log.Printf("follower with no account")
 	accountFollowing, err := s.UserRepository.GetUserByID(idFollowing)
 	if err != nil {
 		return err
@@ -150,27 +144,22 @@ func (s *service) FollowUser(idFollower int, idFollowing int) error {
 	if accountFollowing == nil {
 		return errors.New("id cannot follow user with no account")
 	}
-	log.Printf("following with no account")
+
 	followers, err := s.UserRepository.GetFollowingByUserID(idFollower)
 	for i := 0; i < len(followers); i++ {
 		if idFollowing == followers[i].ID {
 			return errors.New("the id cannot follow user more than once")
 		}
 	}
-	time.Sleep(2 * time.Second)
-	log.Printf("REPOSITORY")
+
+	//time.Sleep(2 * time.Second)
 	err = s.UserRepository.FollowUser(idFollower, idFollowing)
 	if err != nil {
 		return err
 	}
-	log.Printf("final")
 	return nil
 }
 func (s *service) DeleteConnection(idFollower int, idFollowing int) error {
-
-	// suggestions:
-	// - delete all connections (follower <-> follower) with the user in case his account has been deleted //
-
 	err := s.UserRepository.DeleteConnection(idFollower, idFollowing)
 	if err != nil {
 		return err
