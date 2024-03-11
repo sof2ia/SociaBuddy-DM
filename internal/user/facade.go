@@ -4,25 +4,25 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 )
 
 type facade struct {
-	client *http.Client
+	findCepUrl string
+	client     *http.Client
 }
 type Facade interface {
 	FindCep(cepUser string, number string, complement string) (*Address, error)
 }
 
 func (f *facade) FindCep(cepUser string, number string, complement string) (*Address, error) {
-	url := fmt.Sprintf("https://viacep.com.br/ws/%s/json", cepUser)
+	url := fmt.Sprintf("%s/ws/%s/json", f.findCepUrl, cepUser)
 	resUrl, err := f.client.Get(url)
 	if err != nil {
 		return nil, err
 	}
+
 	if resUrl.StatusCode != 200 {
-		log.Printf("finding this cep is failed")
 		return nil, errors.New("finding this cep is failed")
 	}
 	var result map[string]string
@@ -39,6 +39,7 @@ func (f *facade) FindCep(cepUser string, number string, complement string) (*Add
 	if err != nil {
 		return nil, err
 	}
+	
 	return &Address{
 		ZipCode:      cepUser,
 		Country:      "Brasil",
@@ -51,6 +52,9 @@ func (f *facade) FindCep(cepUser string, number string, complement string) (*Add
 	}, nil
 }
 
-func NewFacade(client *http.Client) Facade {
-	return &facade{client}
+func NewFacade(findCepUrl string, client *http.Client) Facade {
+	return &facade{
+		findCepUrl: findCepUrl,
+		client:     client,
+	}
 }

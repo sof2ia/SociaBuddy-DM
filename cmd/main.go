@@ -21,7 +21,7 @@ func main() {
 
 	rep := user.NewRepository(db)
 	cli := http.DefaultClient
-	fac := user.NewFacade(cli)
+	fac := user.NewFacade("https://viacep.com.br", cli)
 	serv := user.NewService(rep, fac)
 	ser := user.NewServer(serv)
 

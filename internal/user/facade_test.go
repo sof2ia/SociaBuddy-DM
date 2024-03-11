@@ -18,7 +18,6 @@ type argCEP struct {
 
 func TestFindCepSuccessfully(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println(w)
 		result := `{
 			"cep": "12246-260",
 			"logradouro": "Avenida Salmão",
@@ -38,7 +37,7 @@ func TestFindCepSuccessfully(t *testing.T) {
 		}
 	}))
 	defer mockServer.Close()
-	api := NewFacade(mockServer.Client())
+	api := NewFacade(mockServer.URL, mockServer.Client())
 	test := []argCEP{
 		{
 			name:       "FindCep() is succeed",
@@ -68,8 +67,8 @@ func TestFindCepSuccessfully(t *testing.T) {
 	}
 }
 
-func TestFindCepUnsuccessfully(t *testing.T) {
-	mockServer2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func TestFindCepWithStatusBadRequest(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		result := `{
 		 "status" : "Bad request"
 		}`
@@ -80,8 +79,8 @@ func TestFindCepUnsuccessfully(t *testing.T) {
 			return
 		}
 	}))
-	defer mockServer2.Close()
-	api2 := NewFacade(mockServer2.Client())
+	defer mockServer.Close()
+	api := NewFacade(mockServer.URL, mockServer.Client())
 	test := []argCEP{
 		{
 			name:            "CEP invalid - syntax",
@@ -91,6 +90,47 @@ func TestFindCepUnsuccessfully(t *testing.T) {
 			expectedAddress: nil,
 		},
 		{
+			name:            "CEP invalid - alphanumeric",
+			userCEP:         "95010A10",
+			number:          "0",
+			complement:      "House",
+			expectedAddress: nil,
+		},
+		{
+			name:            "CEP invalid - space",
+			userCEP:         "95010 10",
+			number:          "0",
+			complement:      "House",
+			expectedAddress: nil,
+		},
+	}
+	for _, tt := range test {
+		t.Run(tt.name, func(t *testing.T) {
+			address, err := api.FindCep(tt.userCEP, tt.number, tt.complement)
+			log.Printf("user: %v, err: %v", address, err)
+			if !reflect.DeepEqual(address, tt.expectedAddress) {
+				t.Fatalf("expected %+v, got %+v", tt.expectedAddress, address)
+			}
+		})
+	}
+}
+
+func TestFindCepError(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		result := `{
+		 "erro" : "true"
+		}`
+		w.WriteHeader(200)
+
+		_, err := w.Write([]byte(result))
+		if err != nil {
+			return
+		}
+	}))
+	defer mockServer.Close()
+	api := NewFacade(mockServer.URL, mockServer.Client())
+	test := []argCEP{
+		{
 			name:            "CEP invalid - doesn't registered",
 			userCEP:         "99999999",
 			expectedAddress: nil,
@@ -98,7 +138,7 @@ func TestFindCepUnsuccessfully(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			address, err := api2.FindCep(tt.userCEP, tt.number, tt.complement)
+			address, err := api.FindCep(tt.userCEP, tt.number, tt.complement)
 			log.Printf("user: %v, err: %v", address, err)
 			if !reflect.DeepEqual(address, tt.expectedAddress) {
 				t.Fatalf("expected %+v, got %+v", tt.expectedAddress, address)
