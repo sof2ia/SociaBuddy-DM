@@ -166,7 +166,6 @@ func (s *service) DeleteConnection(idFollower int, idFollowing int) error {
 	}
 	return nil
 }
-
 func (s *service) GetFollowingByUserID(idUser int) ([]User, error) {
 	users, err := s.UserRepository.GetFollowingByUserID(idUser)
 	if err != nil {

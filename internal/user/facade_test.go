@@ -131,7 +131,7 @@ func TestFindCepError(t *testing.T) {
 	api := NewFacade(mockServer.URL, mockServer.Client())
 	test := []argCEP{
 		{
-			name:            "CEP invalid - doesn't registered",
+			name:            "CEP invalid - isn't registered",
 			userCEP:         "99999999",
 			expectedAddress: nil,
 		},
