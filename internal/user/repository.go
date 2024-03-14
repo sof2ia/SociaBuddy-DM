@@ -189,7 +189,7 @@ func (r *repository) DeleteALLFollowingConnections(idFollowing int) error {
 }
 
 func (r *repository) GetFollowingByUserID(idUser int) ([]User, error) {
-	row, err := r.db.Query("SELECT * FROM Users INNER JOIN Connection ON Users.ID = Connection.idFollowing WHERE Connection.idFollower = ? ", idUser)
+	row, err := r.db.Query("SELECT Users.* FROM Users INNER JOIN Connection ON Users.ID = Connection.idFollowing WHERE Connection.idFollower = ? ", idUser)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +225,7 @@ func (r *repository) GetFollowingByUserID(idUser int) ([]User, error) {
 }
 
 func (r *repository) GetUserFollowers(idUser int) ([]User, error) {
-	row, err := r.db.Query("SELECT * FROM Users INNER JOIN Connection ON Users.ID = Connection.idFollower WHERE Connection.idFollowing = ? ", idUser)
+	row, err := r.db.Query("SELECT Users.* FROM Users INNER JOIN Connection ON Users.ID = Connection.idFollower WHERE Connection.idFollowing = ? ", idUser)
 	if err != nil {
 		return nil, err
 	}
