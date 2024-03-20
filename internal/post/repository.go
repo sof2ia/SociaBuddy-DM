@@ -2,6 +2,7 @@ package post
 
 import (
 	"database/sql"
+	"log"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type Repository interface {
 	GetPostByTitle(title string) ([]Post, error)
 	EditPost(post Post, idPost int) (*Post, error)
 	DeletePost(idPost int) error
+	DeleteAllPostsByUserID(idUser int) error
 }
 
 type repository struct {
@@ -21,8 +23,21 @@ type repository struct {
 }
 
 func (r *repository) CreatePost(post Post) (*Post, error) {
-	res, err := r.db.Exec(`INSERT INTO Post ("Date", "Title", "Content")
-	VALUES (?,?,?)`, post.Date, post.Title, post.Content)
+	location, err := time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		return nil, err
+	}
+	format := "Mon Jan _2 15:04:05 2006"
+	customDateStr := time.Now().In(location).Format(format)
+	//customDate, err := time.Parse(format, customDateStr)
+	log.Print(customDateStr)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := r.db.Exec(`INSERT INTO Posts ("IDUser", "DatePost", "Title", "Content")
+	VALUES (?,?,?,?)`, post.IDUser, customDateStr, post.Title, post.Content)
+
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +50,7 @@ func (r *repository) CreatePost(post Post) (*Post, error) {
 }
 
 func (r *repository) GetPost() ([]Post, error) {
-	posts, err := r.db.Query("SELECT * FROM Post")
+	posts, err := r.db.Query("SELECT * FROM Posts")
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +73,7 @@ func (r *repository) GetPost() ([]Post, error) {
 }
 
 func (r *repository) GetPostByID(idPost int) (*Post, error) {
-	rows, err := r.db.Query("SELECT * FROM Post WHERE ID = ?", idPost)
+	rows, err := r.db.Query("SELECT * FROM Posts WHERE ID = ?", idPost)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +95,7 @@ func (r *repository) GetPostByID(idPost int) (*Post, error) {
 }
 
 func (r *repository) GetPostByUserID(idUser int) ([]Post, error) {
-	rows, err := r.db.Query("SELECT * FROM Post WHERE IDUser = ?", idUser)
+	rows, err := r.db.Query("SELECT * FROM Posts WHERE IDUser = ?", idUser)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +118,8 @@ func (r *repository) GetPostByUserID(idUser int) ([]Post, error) {
 }
 
 func (r *repository) GetPostByDate(date time.Time) ([]Post, error) {
-	rows, err := r.db.Query("SELECT * FROM Post WHERE DatePost = ?", date)
+	formattedDate := date.Format("Monday Jan _2 15:04:05 2006")
+	rows, err := r.db.Query("SELECT * FROM Posts WHERE DatePost = ?", formattedDate)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +142,7 @@ func (r *repository) GetPostByDate(date time.Time) ([]Post, error) {
 }
 
 func (r *repository) GetPostByTitle(title string) ([]Post, error) {
-	rows, err := r.db.Query("SELECT * FROM Users WHERE Title = ?", title)
+	rows, err := r.db.Query("SELECT * FROM Posts WHERE Title = ?", title)
 	if err != nil {
 		return nil, err
 	}
@@ -149,8 +165,19 @@ func (r *repository) GetPostByTitle(title string) ([]Post, error) {
 }
 
 func (r *repository) EditPost(post Post, idPost int) (*Post, error) {
-	_, err := r.db.Exec(`UPDATE Post SET "Date" = ?, "Title" = ?, "Content" = ?
-			WHERE ID = ?`, post.Date, post.Title, post.Content, idPost)
+	location, err := time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		return nil, err
+	}
+	format := "Mon Jan _2 15:04:05 2006"
+	customDateStr := time.Now().In(location).Format(format)
+	//customDate, err := time.Parse(format, customDateStr)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = r.db.Exec(`UPDATE Posts SET IDUser = ?, DatePost = ?, Title = ?, Content = ?
+			WHERE ID = ?`, post.IDUser, customDateStr, post.Title, post.Content, idPost)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +185,15 @@ func (r *repository) EditPost(post Post, idPost int) (*Post, error) {
 }
 
 func (r *repository) DeletePost(idPost int) error {
-	_, err := r.db.Exec("DELETE FROM Post WHERE ID = ?", idPost)
+	_, err := r.db.Exec("DELETE FROM Posts WHERE ID = ?", idPost)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *repository) DeleteAllPostsByUserID(idUser int) error {
+	_, err := r.db.Exec("DELETE FROM Posts WHERE IDUser = ?", idUser)
 	if err != nil {
 		return err
 	}
