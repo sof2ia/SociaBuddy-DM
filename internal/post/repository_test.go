@@ -6,6 +6,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"log"
 	"reflect"
+	"regexp"
 	"testing"
 	"time"
 )
@@ -76,21 +77,21 @@ func TestGetPosts(t *testing.T) {
 	}(mockDB)
 	rep := NewRepository(mockDB)
 
-	format := "Mon Jan _2 15:04:05 2006"
-	timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local).Format(format)
+	//format := "Mon Jan _2 15:04:05 2006"
+	timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local)
 	//customDate, err := time.Parse(format, timeNow)
 
 	result := sqlmock.NewRows([]string{
 		"ID", "IDUser", "DatePost", "Title", "Content",
 	}).AddRow(1, 2, timeNow, "title1", "content1")
-	mock.ExpectQuery("SELECT \\* FROM Post").WillReturnRows(result)
+	mock.ExpectQuery("SELECT \\* FROM Posts").WillReturnRows(result)
 
 	test := []argGet{
 		{name: "GetPosts() is succeed",
 			output: []Post{
 				{ID: 1,
 					IDUser:  2,
-					Date:    "Mon Nov 13 00:00:00 2023",
+					Date:    timeNow,
 					Title:   "title1",
 					Content: "content1",
 				},
@@ -106,7 +107,7 @@ func TestGetPosts(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			posts, err := rep.GetPost()
+			posts, err := rep.GetPosts()
 			log.Printf("users: %+v, err: %+v", posts, err)
 			if !reflect.DeepEqual(posts, tt.output) {
 				t.Fatalf("expected %+v, got %+v", tt.output, posts)
@@ -128,15 +129,15 @@ func TestCreatePost(t *testing.T) {
 
 	}(mockDB)
 
-	format := "Mon Jan _2 15:04:05 2006"
-	//timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local).Format(format)
-	customDateStr := time.Now().In(time.Local).Format(format)
-	log.Printf("test: %v", customDateStr)
+	//format := "Mon Jan _2 15:04:05 2006"
+	//timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local)
+	customDate := time.Now().In(time.Local)
+	log.Printf("test: %v", customDate)
 	rep := NewRepository(mockDB)
-	mock.ExpectExec("INSERT INTO Posts").WithArgs(2, customDateStr, "title1", "content1").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("INSERT INTO Posts").WithArgs(2, customDate, "title1", "content1").WillReturnResult(sqlmock.NewResult(1, 1))
 	result := sqlmock.NewRows([]string{
 		"ID", "IDUser", "DatePost", "Title", "Content",
-	}).AddRow(1, 2, customDateStr, "title1", "content1")
+	}).AddRow(1, 2, customDate, "title1", "content1")
 	mock.ExpectQuery("SELECT \\* FROM Posts WHERE ID = ?").WillReturnRows(result)
 
 	test := []argCreate{
@@ -144,14 +145,14 @@ func TestCreatePost(t *testing.T) {
 			newPost: Post{
 				ID:      1,
 				IDUser:  2,
-				Date:    customDateStr,
+				Date:    customDate,
 				Title:   "title1",
 				Content: "content1",
 			},
 			output: &Post{
 				ID:      1,
 				IDUser:  2,
-				Date:    customDateStr,
+				Date:    customDate,
 				Title:   "title1",
 				Content: "content1",
 			},
@@ -163,7 +164,7 @@ func TestCreatePost(t *testing.T) {
 			newPost: Post{
 				ID:      1,
 				IDUser:  2,
-				Date:    customDateStr,
+				Date:    customDate,
 				Title:   "title1",
 				Content: "content1",
 			},
@@ -193,8 +194,8 @@ func TestGetPostByID(t *testing.T) {
 		_ = mockDB.Close()
 
 	}(mockDB)
-	format := "Mon Jan _2 15:04:05 2006"
-	timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local).Format(format)
+	//format := "Mon Jan _2 15:04:05 2006"
+	timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local)
 
 	rep := NewRepository(mockDB)
 	result := sqlmock.NewRows([]string{
@@ -208,7 +209,7 @@ func TestGetPostByID(t *testing.T) {
 			output: &Post{
 				ID:      1,
 				IDUser:  2,
-				Date:    "Mon Nov 13 00:00:00 2023",
+				Date:    timeNow,
 				Title:   "title1",
 				Content: "content1",
 			},
@@ -245,8 +246,8 @@ func TestGetPostByUserID(t *testing.T) {
 		_ = mockDB.Close()
 
 	}(mockDB)
-	format := "Mon Jan _2 15:04:05 2006"
-	timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local).Format(format)
+	//format := "Mon Jan _2 15:04:05 2006"
+	timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local)
 
 	rep := NewRepository(mockDB)
 	result := sqlmock.NewRows([]string{
@@ -261,7 +262,7 @@ func TestGetPostByUserID(t *testing.T) {
 				{
 					ID:      1,
 					IDUser:  2,
-					Date:    "Mon Nov 13 00:00:00 2023",
+					Date:    timeNow,
 					Title:   "title1",
 					Content: "content1",
 				},
@@ -290,57 +291,57 @@ func TestGetPostByUserID(t *testing.T) {
 	}
 }
 
-//	func TestGetPostByDate(t *testing.T) {
-//		mockDB, mock, err := sqlmock.New()
-//		if err != nil {
-//			t.Fatalf("the creation of mock is failed %v", err)
-//		}
-//		defer func(mockDB *sql.DB) {
-//			_ = mockDB.Close()
-//
-//		}(mockDB)
-//		format := "Mon Jan _2 15:04:05 2006"
-//		timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local).Format(format)
-//
-//		rep := NewRepository(mockDB)
-//		result := sqlmock.NewRows([]string{
-//			"ID", "IDUser", "Date", "Title", "Content",
-//		}).AddRow(1, 2, timeNow, "title1", "content1")
-//		mock.ExpectQuery("SELECT \\* FROM Post").WillReturnRows(result)
-//
-//		test := []argDate{
-//			{name: "GetPosts() is succeed",
-//				date: 2023 - 11 - 13,
-//				output: []Post{
-//					{ID: 1,
-//						IDUser:  2,
-//						Date:    "Mon Nov 13 00:00:00 2023",
-//						Title:   "title1",
-//						Content: "content1",
-//					},
-//				},
-//
-//				hasError: nil,
-//			},
-//			{
-//				name:     "GetPostByDate() when there is no result",
-//				output:   nil,
-//				hasError: errors.New("no posts on this date in database"),
-//			},
-//		}
-//		for _, tt := range test {
-//			t.Run(tt.name, func(t *testing.T) {
-//				posts, err := rep.GetPostByDate(tt.date)
-//				log.Printf("users: %+v, err: %+v", posts, err)
-//				if !reflect.DeepEqual(posts, tt.output) {
-//					t.Fatalf("expected %+v, got %+v", tt.output, posts)
-//				}
-//				if (err != nil && tt.hasError == nil) || (err == nil && tt.hasError != nil) {
-//					t.Fatalf("expeced error %+v, got %+v", tt.hasError, err)
-//				}
-//			})
-//		}
-//	}
+func TestGetPostByDate(t *testing.T) {
+	mockDB, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("the creation of mock is failed %v", err)
+	}
+	defer func(mockDB *sql.DB) {
+		_ = mockDB.Close()
+
+	}(mockDB)
+	//format := "Mon Jan _2 15:04:05 2006"
+	timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local)
+
+	rep := NewRepository(mockDB)
+	result := sqlmock.NewRows([]string{
+		"ID", "IDUser", "Date", "Title", "Content",
+	}).AddRow(1, 2, timeNow, "title1", "content1")
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM Posts WHERE DatePost LIKE '?%'`)).WithArgs(time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local).Format("2006-01-02")).WillReturnRows(result)
+
+	test := []argDate{
+		{name: "GetPostsByDate() is succeed",
+			date: time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local),
+			output: []Post{
+				{ID: 1,
+					IDUser:  2,
+					Date:    timeNow,
+					Title:   "title1",
+					Content: "content1",
+				},
+			},
+
+			hasError: nil,
+		},
+		{
+			name:     "GetPostByDate() when there is no result",
+			output:   nil,
+			hasError: errors.New("no posts on this date in database"),
+		},
+	}
+	for _, tt := range test {
+		t.Run(tt.name, func(t *testing.T) {
+			posts, err := rep.GetPostByDate(tt.date)
+			log.Printf("posts: %+v, err: %+v", posts, err)
+			if !reflect.DeepEqual(posts, tt.output) {
+				t.Fatalf("expected %+v, got %+v", tt.output, posts)
+			}
+			if (err != nil && tt.hasError == nil) || (err == nil && tt.hasError != nil) {
+				t.Fatalf("expeced error %+v, got %+v", tt.hasError, err)
+			}
+		})
+	}
+}
 func TestGetPostByTitle(t *testing.T) {
 	mockDB, mock, err := sqlmock.New()
 	if err != nil {
@@ -350,8 +351,8 @@ func TestGetPostByTitle(t *testing.T) {
 		_ = mockDB.Close()
 
 	}(mockDB)
-	format := "Mon Jan _2 15:04:05 2006"
-	timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local).Format(format)
+	//format := "Mon Jan _2 15:04:05 2006"
+	timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local)
 
 	rep := NewRepository(mockDB)
 	result := sqlmock.NewRows([]string{
@@ -365,7 +366,7 @@ func TestGetPostByTitle(t *testing.T) {
 			output: []Post{
 				{ID: 1,
 					IDUser:  2,
-					Date:    "Mon Nov 13 00:00:00 2023",
+					Date:    timeNow,
 					Title:   "title1",
 					Content: "content1",
 				},
@@ -403,17 +404,17 @@ func TestEditPost(t *testing.T) {
 		_ = mockDB.Close()
 
 	}(mockDB)
-	format := "Mon Jan _2 15:04:05 2006"
-	customDateStr := time.Now().In(time.Local).Format(format)
-	log.Printf("test: %v", customDateStr)
+	//format := "Mon Jan _2 15:04:05 2006"
+	customDate := time.Now().In(time.Local)
+	log.Printf("test: %v", customDate)
 	rep := NewRepository(mockDB)
-	mock.ExpectExec("UPDATE Posts SET IDUser = ?, DatePost = ?, Title = ?, Content = ? WHERE ID = ?").WithArgs(2, customDateStr, "title1", "content1", 1).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("UPDATE Posts SET IDUser = ?, DatePost = ?, Title = ?, Content = ? WHERE ID = ?").WithArgs(2, customDate, "title1", "content1", 1).WillReturnResult(sqlmock.NewResult(1, 1))
 	test := []argEdit{
 		{name: "GetPosts() is succeed",
 			editedPost: Post{
 				ID:      1,
 				IDUser:  2,
-				Date:    customDateStr,
+				Date:    customDate,
 				Title:   "title1",
 				Content: "content1",
 			},
@@ -421,7 +422,7 @@ func TestEditPost(t *testing.T) {
 			output: &Post{
 				ID:      1,
 				IDUser:  2,
-				Date:    customDateStr,
+				Date:    customDate,
 				Title:   "title1",
 				Content: "content1",
 			},
@@ -432,7 +433,7 @@ func TestEditPost(t *testing.T) {
 			editedPost: Post{
 				ID:      1,
 				IDUser:  2,
-				Date:    customDateStr,
+				Date:    customDate,
 				Title:   "title1",
 				Content: "content1",
 			},

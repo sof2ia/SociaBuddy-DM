@@ -8,7 +8,7 @@ type service struct {
 
 type Service interface {
 	CreatePost(post Post) (*Post, error)
-	GetPost() ([]Post, error)
+	GetPosts() ([]Post, error)
 	GetPostByID(idPost int) (*Post, error)
 	GetPostByUserID(idUser int) ([]Post, error)
 	GetPostByDate(date time.Time) ([]Post, error)
@@ -19,6 +19,7 @@ type Service interface {
 }
 
 func (s *service) CreatePost(post Post) (*Post, error) {
+	post.Date = time.Now()
 	newPost, err := s.PostRepository.CreatePost(post)
 	if err != nil {
 		return nil, err
@@ -26,8 +27,8 @@ func (s *service) CreatePost(post Post) (*Post, error) {
 	return newPost, nil
 }
 
-func (s *service) GetPost() ([]Post, error) {
-	posts, err := s.PostRepository.GetPost()
+func (s *service) GetPosts() ([]Post, error) {
+	posts, err := s.PostRepository.GetPosts()
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +68,7 @@ func (s *service) GetPostByTitle(title string) ([]Post, error) {
 }
 
 func (s *service) EditPost(editPost Post, idPost int) (*Post, error) {
+	editPost.Date = time.Now()
 	post, err := s.PostRepository.EditPost(editPost, idPost)
 	if err != nil {
 		return nil, err

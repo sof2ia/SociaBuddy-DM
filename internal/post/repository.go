@@ -2,13 +2,12 @@ package post
 
 import (
 	"database/sql"
-	"log"
 	"time"
 )
 
 type Repository interface {
 	CreatePost(post Post) (*Post, error)
-	GetPost() ([]Post, error)
+	GetPosts() ([]Post, error)
 	GetPostByID(idPost int) (*Post, error)
 	GetPostByUserID(idUser int) ([]Post, error)
 	GetPostByDate(date time.Time) ([]Post, error)
@@ -23,20 +22,8 @@ type repository struct {
 }
 
 func (r *repository) CreatePost(post Post) (*Post, error) {
-	location, err := time.LoadLocation("America/Sao_Paulo")
-	if err != nil {
-		return nil, err
-	}
-	format := "Mon Jan _2 15:04:05 2006"
-	customDateStr := time.Now().In(location).Format(format)
-	//customDate, err := time.Parse(format, customDateStr)
-	log.Print(customDateStr)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := r.db.Exec(`INSERT INTO Posts ("IDUser", "DatePost", "Title", "Content")
-	VALUES (?,?,?,?)`, post.IDUser, customDateStr, post.Title, post.Content)
+	res, err := r.db.Exec(`INSERT INTO Posts (IDUser, DatePost, Title, Content)
+	VALUES (?,?,?,?)`, post.IDUser, post.Date, post.Title, post.Content)
 
 	if err != nil {
 		return nil, err
@@ -49,7 +36,7 @@ func (r *repository) CreatePost(post Post) (*Post, error) {
 	return newPost, nil
 }
 
-func (r *repository) GetPost() ([]Post, error) {
+func (r *repository) GetPosts() ([]Post, error) {
 	posts, err := r.db.Query("SELECT * FROM Posts")
 	if err != nil {
 		return nil, err
@@ -118,8 +105,7 @@ func (r *repository) GetPostByUserID(idUser int) ([]Post, error) {
 }
 
 func (r *repository) GetPostByDate(date time.Time) ([]Post, error) {
-	formattedDate := date.Format("Monday Jan _2 15:04:05 2006")
-	rows, err := r.db.Query("SELECT * FROM Posts WHERE DatePost = ?", formattedDate)
+	rows, err := r.db.Query("SELECT * FROM Posts WHERE DatePost LIKE '?%'", date.Format("2006-01-02"))
 	if err != nil {
 		return nil, err
 	}
@@ -165,19 +151,8 @@ func (r *repository) GetPostByTitle(title string) ([]Post, error) {
 }
 
 func (r *repository) EditPost(post Post, idPost int) (*Post, error) {
-	location, err := time.LoadLocation("America/Sao_Paulo")
-	if err != nil {
-		return nil, err
-	}
-	format := "Mon Jan _2 15:04:05 2006"
-	customDateStr := time.Now().In(location).Format(format)
-	//customDate, err := time.Parse(format, customDateStr)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = r.db.Exec(`UPDATE Posts SET IDUser = ?, DatePost = ?, Title = ?, Content = ?
-			WHERE ID = ?`, post.IDUser, customDateStr, post.Title, post.Content, idPost)
+	_, err := r.db.Exec(`UPDATE Posts SET IDUser = ?, DatePost = ?, Title = ?, Content = ?
+			WHERE ID = ?`, post.IDUser, post.Date, post.Title, post.Content, idPost)
 	if err != nil {
 		return nil, err
 	}

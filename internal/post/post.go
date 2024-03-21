@@ -1,9 +1,11 @@
 package post
 
+import "time"
+
 type Post struct {
 	ID      int
 	IDUser  int
-	Date    string
+	Date    time.Time
 	Title   string
 	Content string
 }
