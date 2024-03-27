@@ -15,9 +15,6 @@ type Repository interface {
 	DeleteConnection(idFollower int, idFollowing int) error
 	GetFollowingByUserID(idUser int) ([]User, error)
 	GetUserFollowers(idUser int) ([]User, error)
-
-	DeleteALLFollowerConnections(idFollower int) error
-	DeleteALLFollowingConnections(idFollowing int) error
 }
 type repository struct {
 	db *sql.DB
@@ -149,7 +146,11 @@ func (r *repository) UpdateUser(user User, idUser int) (*User, error) {
 }
 
 func (r *repository) DeleteUser(idUser int) error {
-	_, err := r.db.Exec("DELETE FROM Users WHERE ID = ?", idUser)
+	_, err := r.db.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Exec("DELETE FROM Users WHERE ID = ?", idUser)
 	if err != nil {
 		return err
 	}
@@ -166,22 +167,6 @@ func (r *repository) FollowUser(idFollower int, idFollowing int) error {
 }
 func (r *repository) DeleteConnection(idFollower int, idFollowing int) error {
 	_, err := r.db.Exec("DELETE FROM Connection WHERE IdFollower = ? AND IdFollowing = ?", idFollower, idFollowing)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *repository) DeleteALLFollowerConnections(idFollower int) error {
-	_, err := r.db.Exec("DELETE FROM Connection WHERE IdFollower = ?", idFollower)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *repository) DeleteALLFollowingConnections(idFollowing int) error {
-	_, err := r.db.Exec("DELETE FROM Connection WHERE IdFollowing = ?", idFollowing)
 	if err != nil {
 		return err
 	}

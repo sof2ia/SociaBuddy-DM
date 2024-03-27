@@ -113,16 +113,6 @@ func (s *service) DeleteUser(idUser int) error {
 		return err
 	}
 
-	err = s.UserRepository.DeleteALLFollowerConnections(idUser)
-	if err != nil {
-		return err
-	}
-
-	err = s.UserRepository.DeleteALLFollowingConnections(idUser)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -159,6 +149,7 @@ func (s *service) FollowUser(idFollower int, idFollowing int) error {
 	}
 	return nil
 }
+
 func (s *service) DeleteConnection(idFollower int, idFollowing int) error {
 	err := s.UserRepository.DeleteConnection(idFollower, idFollowing)
 	if err != nil {

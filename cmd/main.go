@@ -15,12 +15,7 @@ import (
 func main() {
 	file := "../internal/database/socialbuddy.db"
 
-	db, err := startSqliteUser("Users", file)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	postDB, err := startSqlitePost("Post", file)
+	db, err := startSqlite("Users", "Posts", file)
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -31,14 +26,14 @@ func main() {
 	fac := user.NewFacade("https://viacep.com.br", cli)
 	servUser := user.NewService(repUser, fac)
 	serUser := user.NewServer(servUser)
-	log.Println("module user")
+	//log.Println("module user")
 
-	repPost := post.NewRepository(postDB)
-	log.Println("newRepository")
-	servPost := post.NewService(repPost)
-	log.Println("newService")
+	repPost := post.NewRepository(db)
+	//log.Println("newRepository")
+	servPost := post.NewService(repPost, servUser)
+	//log.Println("newService")
 	serPost := post.NewServer(servPost)
-	log.Println("newServer")
+	//log.Println("newServer")
 
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
@@ -71,7 +66,7 @@ func main() {
 		return
 	}
 }
-func startSqliteUser(tableName string, file string) (*sql.DB, error) {
+func startSqlite(tableName1 string, tableName2 string, file string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", file)
 	if err != nil {
 		log.Fatal(err)
@@ -92,37 +87,30 @@ func startSqliteUser(tableName string, file string) (*sql.DB, error) {
 													Street       TEXT
 													Number       TEXT
                               						Complement   TEXT
-    												)    `, tableName))
+    												)    `, tableName1))
 	if err != nil {
+		log.Println(err)
 		err := db.Close()
 		if err != nil {
 			return nil, err
 		}
-		log.Fatal(err)
-		return nil, err
-	}
-	return db, nil
-}
-
-func startSqlitePost(tableName string, file string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", file)
-	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 	_, err = db.Exec(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
     												ID INTEGER PRIMARY KEY AUTOINCREMENT,
-    												IDUser INTEGER FOREIGN KEY,
+    												IDUser INTEGER,
     												DatePost DATE,
     												Title TEXT,
     												Content TEXT,
-    												)    `, tableName))
+    												FOREIGN KEY (IDUser) REFERENCES Users(ID)
+    												)    `, tableName2))
 	if err != nil {
+		log.Println(err)
 		err := db.Close()
 		if err != nil {
 			return nil, err
 		}
-		log.Fatal(err)
+
 		return nil, err
 	}
 	return db, nil

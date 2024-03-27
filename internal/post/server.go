@@ -142,13 +142,13 @@ func (s *Server) EditPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	user, err := s.postService.EditPost(editedPost, id)
+	post, err := s.postService.EditPost(editedPost, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(user)
+	err = json.NewEncoder(w).Encode(post)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -156,8 +156,8 @@ func (s *Server) EditPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) DeletePost(w http.ResponseWriter, r *http.Request) {
-	userId := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(userId)
+	postId := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(postId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -170,6 +170,6 @@ func (s *Server) DeletePost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func NewServer(userService Service) *Server {
-	return &Server{userService}
+func NewServer(postService Service) *Server {
+	return &Server{postService}
 }

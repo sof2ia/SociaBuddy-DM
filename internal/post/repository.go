@@ -2,6 +2,7 @@ package post
 
 import (
 	"database/sql"
+	"log"
 	"time"
 )
 
@@ -14,7 +15,6 @@ type Repository interface {
 	GetPostByTitle(title string) ([]Post, error)
 	EditPost(post Post, idPost int) (*Post, error)
 	DeletePost(idPost int) error
-	DeleteAllPostsByUserID(idUser int) error
 }
 
 type repository struct {
@@ -28,6 +28,7 @@ func (r *repository) CreatePost(post Post) (*Post, error) {
 	if err != nil {
 		return nil, err
 	}
+	//log.Println("Post has created")
 	idPost, err := res.LastInsertId()
 	newPost, err := r.GetPostByID(int(idPost))
 	if err != nil {
@@ -105,7 +106,9 @@ func (r *repository) GetPostByUserID(idUser int) ([]Post, error) {
 }
 
 func (r *repository) GetPostByDate(date time.Time) ([]Post, error) {
-	rows, err := r.db.Query("SELECT * FROM Posts WHERE DatePost LIKE '?%'", date.Format("2006-01-02"))
+	dateFormat := date.Format("2006-01-02")
+	log.Println(dateFormat)
+	rows, err := r.db.Query(`SELECT * FROM Posts WHERE strftime('%Y-%m-%d', DatePost) = ?`, date.Format("2006-01-02"))
 	if err != nil {
 		return nil, err
 	}
@@ -161,14 +164,6 @@ func (r *repository) EditPost(post Post, idPost int) (*Post, error) {
 
 func (r *repository) DeletePost(idPost int) error {
 	_, err := r.db.Exec("DELETE FROM Posts WHERE ID = ?", idPost)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *repository) DeleteAllPostsByUserID(idUser int) error {
-	_, err := r.db.Exec("DELETE FROM Posts WHERE IDUser = ?", idUser)
 	if err != nil {
 		return err
 	}
