@@ -129,8 +129,6 @@ func TestCreatePost(t *testing.T) {
 
 	}(mockDB)
 
-	//format := "Mon Jan _2 15:04:05 2006"
-	//timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local)
 	customDate := time.Now().In(time.Local)
 	log.Printf("test: %v", customDate)
 	rep := NewRepository(mockDB)
@@ -138,7 +136,7 @@ func TestCreatePost(t *testing.T) {
 	result := sqlmock.NewRows([]string{
 		"ID", "IDUser", "DatePost", "Title", "Content",
 	}).AddRow(1, 2, customDate, "title1", "content1")
-	mock.ExpectQuery("SELECT \\* FROM Posts WHERE ID = ?").WillReturnRows(result)
+	mock.ExpectQuery("SELECT \\* FROM Posts WHERE ID = ?").WithArgs(1).WillReturnRows(result)
 
 	test := []argCreate{
 		{name: "CreatePost() is succeed",

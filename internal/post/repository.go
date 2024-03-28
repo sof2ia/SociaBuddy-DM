@@ -28,7 +28,6 @@ func (r *repository) CreatePost(post Post) (*Post, error) {
 	if err != nil {
 		return nil, err
 	}
-	//log.Println("Post has created")
 	idPost, err := res.LastInsertId()
 	newPost, err := r.GetPostByID(int(idPost))
 	if err != nil {
@@ -163,7 +162,11 @@ func (r *repository) EditPost(post Post, idPost int) (*Post, error) {
 }
 
 func (r *repository) DeletePost(idPost int) error {
-	_, err := r.db.Exec("DELETE FROM Posts WHERE ID = ?", idPost)
+	_, err := r.db.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Exec("DELETE FROM Posts WHERE ID = ?", idPost)
 	if err != nil {
 		return err
 	}
