@@ -82,7 +82,7 @@ func (r *repository) GetComByID(idCom int) (*Comment, error) {
 }
 
 func (r *repository) GetComByPostID(idPost int) ([]Comment, error) {
-	rows, err := r.db.Query("SELECT * FROM Comment WHERE ID = ?", idPost)
+	rows, err := r.db.Query("SELECT * FROM Comment WHERE IDPost = ?", idPost)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (r *repository) GetComByPostID(idPost int) ([]Comment, error) {
 }
 
 func (r *repository) GetComByUserID(idUser int) ([]Comment, error) {
-	rows, err := r.db.Query("SELECT * FROM Comment WHERE ID = ?", idUser)
+	rows, err := r.db.Query("SELECT * FROM Comment WHERE IDUser = ?", idUser)
 	if err != nil {
 		return nil, err
 	}

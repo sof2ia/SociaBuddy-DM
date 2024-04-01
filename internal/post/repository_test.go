@@ -305,7 +305,7 @@ func TestGetPostByDate(t *testing.T) {
 	result := sqlmock.NewRows([]string{
 		"ID", "IDUser", "Date", "Title", "Content",
 	}).AddRow(1, 2, timeNow, "title1", "content1")
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM Posts WHERE DatePost LIKE '?%'`)).WithArgs(time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local).Format("2006-01-02")).WillReturnRows(result)
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM Posts WHERE strftime('%Y-%m-%d', DatePost) = ?`)).WithArgs(time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local).Format("2006-01-02")).WillReturnRows(result)
 
 	test := []argDate{
 		{name: "GetPostsByDate() is succeed",
@@ -318,11 +318,11 @@ func TestGetPostByDate(t *testing.T) {
 					Content: "content1",
 				},
 			},
-
 			hasError: nil,
 		},
 		{
 			name:     "GetPostByDate() when there is no result",
+			date:     time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local),
 			output:   nil,
 			hasError: errors.New("no posts on this date in database"),
 		},
@@ -359,7 +359,7 @@ func TestGetPostByTitle(t *testing.T) {
 	mock.ExpectQuery("SELECT \\* FROM Posts WHERE Title =?").WithArgs("title1").WillReturnRows(result)
 
 	test := []argTitle{
-		{name: "GetPosts() is succeed",
+		{name: "GetPostsByTitle() is succeed",
 			title: "title1",
 			output: []Post{
 				{ID: 1,
@@ -373,7 +373,7 @@ func TestGetPostByTitle(t *testing.T) {
 			hasError: nil,
 		},
 		{
-			name:     "GetPost() when there is no result",
+			name:     "GetPostsByTitle() when there is no result",
 			title:    "title2",
 			output:   nil,
 			hasError: errors.New("no posts in database"),
@@ -408,7 +408,7 @@ func TestEditPost(t *testing.T) {
 	rep := NewRepository(mockDB)
 	mock.ExpectExec("UPDATE Posts SET IDUser = ?, DatePost = ?, Title = ?, Content = ? WHERE ID = ?").WithArgs(2, customDate, "title1", "content1", 1).WillReturnResult(sqlmock.NewResult(1, 1))
 	test := []argEdit{
-		{name: "GetPosts() is succeed",
+		{name: "EditPosts() is succeed",
 			editedPost: Post{
 				ID:      1,
 				IDUser:  2,
@@ -464,12 +464,12 @@ func TestDeletePost(t *testing.T) {
 
 	}(mockDB)
 	rep := NewRepository(mockDB)
+	mock.ExpectExec("PRAGMA foreign_keys = ON")
 	mock.ExpectExec("DELETE FROM Posts WHERE ID = ?").WithArgs(1).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	test := []argDelete{
 		{name: "DeletePost() is succeed",
-			id: 1,
-
+			id:       1,
 			hasError: nil,
 		},
 		{

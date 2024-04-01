@@ -68,11 +68,6 @@ func (m *mockRepository) DeletePost(idPost int) error {
 	return args.Error(0)
 }
 
-func (m *mockRepository) DeleteAllPostsByUserID(idUser int) error {
-	args := m.Called(idUser)
-	return args.Error(0)
-}
-
 var _ = Describe("The Service Test", func() {
 	var (
 		mockPostRepository *mockRepository
