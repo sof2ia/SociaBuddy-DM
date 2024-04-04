@@ -407,6 +407,10 @@ func TestEditPost(t *testing.T) {
 	log.Printf("test: %v", customDate)
 	rep := NewRepository(mockDB)
 	mock.ExpectExec("UPDATE Posts SET IDUser = ?, DatePost = ?, Title = ?, Content = ? WHERE ID = ?").WithArgs(2, customDate, "title1", "content1", 1).WillReturnResult(sqlmock.NewResult(1, 1))
+	result := sqlmock.NewRows([]string{
+		"ID", "IDUser", "DatePost", "Title", "Content",
+	}).AddRow(1, 2, customDate, "title1", "content1")
+	mock.ExpectQuery("SELECT \\* FROM Posts WHERE ID = ?").WithArgs(1).WillReturnRows(result)
 	test := []argEdit{
 		{name: "EditPosts() is succeed",
 			editedPost: Post{
@@ -464,7 +468,7 @@ func TestDeletePost(t *testing.T) {
 
 	}(mockDB)
 	rep := NewRepository(mockDB)
-	mock.ExpectExec("PRAGMA foreign_keys = ON")
+	mock.ExpectExec("PRAGMA foreign_keys = ON").WithoutArgs().WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec("DELETE FROM Posts WHERE ID = ?").WithArgs(1).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	test := []argDelete{

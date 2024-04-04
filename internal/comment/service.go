@@ -13,18 +13,18 @@ type service struct {
 }
 
 type Service interface {
-	CreateCom(com Comment) (*Comment, error)
+	CreateCom(com Comment, idPost int) (*Comment, error)
 	GetCom() ([]Comment, error)
 	GetComByID(idCom int) (*Comment, error)
 	GetComByPostID(idPost int) ([]Comment, error)
 	GetComByUserID(idUser int) ([]Comment, error)
-	GetComByDate(date time.Time) ([]Comment, error)
-	EditCom(com Comment, idCom int) (*Comment, error)
+	GetComByDate(date time.Time, idPost int) ([]Comment, error)
+	EditCom(com Comment, idCom int, idPost int) (*Comment, error)
 	DeleteCom(idCom int) error
 }
 
-func (s *service) CreateCom(com Comment) (*Comment, error) {
-	err := ValidateIDPost(com.IDPost, s.PostRepository)
+func (s *service) CreateCom(com Comment, idPost int) (*Comment, error) {
+	err := ValidateIDPost(idPost, s.PostRepository)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (s *service) CreateCom(com Comment) (*Comment, error) {
 	}
 
 	com.DateComment = time.Now()
-	newPost, err := s.ComRepository.CreateCom(com)
+	newPost, err := s.ComRepository.CreateCom(com, idPost)
 	if err != nil {
 		return nil, err
 	}
@@ -73,17 +73,17 @@ func (s *service) GetComByUserID(idUser int) ([]Comment, error) {
 	return comments, nil
 }
 
-func (s *service) GetComByDate(date time.Time) ([]Comment, error) {
-	comments, err := s.ComRepository.GetComByDate(date)
+func (s *service) GetComByDate(date time.Time, idPost int) ([]Comment, error) {
+	comments, err := s.ComRepository.GetComByDate(date, idPost)
 	if err != nil {
 		return nil, err
 	}
 	return comments, nil
 }
 
-func (s *service) EditCom(com Comment, idCom int) (*Comment, error) {
+func (s *service) EditCom(com Comment, idCom int, idPost int) (*Comment, error) {
 	com.DateComment = time.Now()
-	comment, err := s.ComRepository.EditCom(com, idCom)
+	comment, err := s.ComRepository.EditCom(com, idCom, idPost)
 	if err != nil {
 		return nil, err
 	}

@@ -158,7 +158,13 @@ func (r *repository) EditPost(post Post, idPost int) (*Post, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &post, nil
+
+	editedPost, err := r.GetPostByID(idPost)
+	if err != nil {
+		return nil, err
+	}
+
+	return editedPost, nil
 }
 
 func (r *repository) DeletePost(idPost int) error {

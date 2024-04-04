@@ -351,6 +351,11 @@ func TestUpdateUser(t *testing.T) {
 	}(mockDB)
 	rep := NewRepository(mockDB)
 	mock.ExpectExec("UPDATE Users SET Name = ?, Age = ?, DocumentNumber = ?, Email = ?, Phone = ?, ZipCode = ?, Country = ?, State = ?, City = ?, Neighborhood = ?, Street = ?, Number = ?, Complement = ? WHERE ID = ?").WithArgs("Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 12345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C", 1).WillReturnResult(sqlmock.NewResult(1, 1))
+	result := sqlmock.NewRows([]string{
+		"ID", "Name", "Age", "DocumentNumber", "Email", "Phone", "ZipCode", "Country", "State", "City", "Neighborhood", "Street", "Number", "Complement",
+	}).AddRow(1, "Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 12345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C")
+	mock.ExpectQuery("SELECT \\* FROM Users WHERE ID = ?").WithArgs(1).WillReturnRows(result)
+
 	test := []argUpdate{
 		{
 			name: "UpdateUser() is succeed",
@@ -443,6 +448,7 @@ func TestDeleteUser(t *testing.T) {
 		}
 	}(mockDB)
 	rep := NewRepository(mockDB)
+	mock.ExpectExec("PRAGMA foreign_keys = ON").WithoutArgs().WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec("DELETE FROM Users WHERE ID = ?").WithArgs(1).WillReturnResult(sqlmock.NewResult(1, 1))
 	test := []argDelete{
 		{

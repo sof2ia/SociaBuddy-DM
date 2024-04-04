@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestPostService(t *testing.T) {
+func TestComService(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Post Service Suite")
+	RunSpecs(t, "Comment Service Suite")
 }

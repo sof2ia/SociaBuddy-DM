@@ -138,11 +138,16 @@ func (r *repository) UpdateUser(user User, idUser int) (*User, error) {
 			WHERE ID = ?`, user.Name, user.Age, user.DocumentNumber,
 		user.Email, user.Phone, user.Address.ZipCode, user.Address.Country, user.Address.State,
 		user.Address.City, user.Address.Neighborhood, user.Address.Street, user.Address.Number, user.Address.Complement, idUser)
-
 	if err != nil {
 		return nil, err
 	}
-	return &user, nil
+
+	editedUser, err := r.GetUserByID(idUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return editedUser, nil
 }
 
 func (r *repository) DeleteUser(idUser int) error {

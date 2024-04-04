@@ -44,13 +44,13 @@ func (m *mockRepository) GetComByUserID(idUser int) ([]Comment, error) {
 	return args.Get(0).([]Comment), args.Error(1)
 }
 
-func (m *mockRepository) GetComByDate(date time.Time) ([]Comment, error) {
-	args := m.Called(date)
+func (m *mockRepository) GetComByDate(date time.Time, idPost int) ([]Comment, error) {
+	args := m.Called(date, idPost)
 	return args.Get(0).([]Comment), args.Error(1)
 }
 
-func (m *mockRepository) EditCom(com Comment, idCom int) (*Comment, error) {
-	args := m.Called(com, idCom)
+func (m *mockRepository) EditCom(com Comment, idCom int, idPost int) (*Comment, error) {
+	args := m.Called(com, idCom, idPost)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -72,8 +72,8 @@ func (m *mockPostService) GetPostByID(idPost int) (*post.Post, error) {
 	return args.Get(0).(*post.Post), args.Error(1)
 }
 
-func (m *mockRepository) CreateCom(com Comment) (*Comment, error) {
-	args := m.Called(com)
+func (m *mockRepository) CreateCom(com Comment, idPost int) (*Comment, error) {
+	args := m.Called(com, idPost)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -93,7 +93,7 @@ var _ = Describe("The Service Test", func() {
 	})
 	It("should CreateCom successfully", func() {
 		customDate := time.Now().In(time.Local)
-		mockComRepository.On("CreateCom", mock.AnythingOfType("Comment")).Return(&Comment{
+		mockComRepository.On("CreateCom", mock.AnythingOfType("Comment"), 2).Return(&Comment{
 			ID:          1,
 			IDPost:      2,
 			IDUser:      1,
@@ -135,13 +135,13 @@ var _ = Describe("The Service Test", func() {
 			IDUser:      1,
 			DateComment: customDate,
 			Content:     "content1",
-		})
+		}, 2)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(comment.ID).Should(Equal(1))
 		Expect(comment.IDPost).Should(Equal(2))
 	})
 	It("should CreateCom unsuccessfully", func() {
-		mockComRepository.On("CreateCom", mock.AnythingOfType("Comment")).Return(nil, errors.New("error while CreateCom()"))
+		mockComRepository.On("CreateCom", mock.AnythingOfType("Comment"), 2).Return(nil, errors.New("error while CreateCom()"))
 		mockServicePost.On("GetPostByID", 2).Return(&post.Post{}, nil)
 		mockServiceUser.On("GetUserByID", 1).Return(&user.User{}, nil)
 		customDate := time.Now().In(time.Local)
@@ -152,7 +152,7 @@ var _ = Describe("The Service Test", func() {
 			IDUser:      1,
 			DateComment: customDate,
 			Content:     "content1",
-		})
+		}, 2)
 		Expect(err).Should(HaveOccurred())
 		Expect(comment).Should(BeNil())
 	})
@@ -246,7 +246,7 @@ var _ = Describe("The Service Test", func() {
 	})
 	It("should GetComByDate successfully", func() {
 		timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local)
-		mockComRepository.On("GetComByDate", timeNow).Return([]Comment{
+		mockComRepository.On("GetComByDate", timeNow, 2).Return([]Comment{
 			{ID: 1,
 				IDPost:      2,
 				IDUser:      1,
@@ -255,21 +255,21 @@ var _ = Describe("The Service Test", func() {
 			},
 		}, nil)
 		newService := NewService(mockComRepository, nil, nil)
-		comments, err := newService.GetComByDate(timeNow)
+		comments, err := newService.GetComByDate(timeNow, 2)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(comments[0].ID).Should(Equal(1))
 		Expect(comments[0].IDPost).Should(Equal(2))
 	})
 	It("should GetComByDate unsuccessfully", func() {
 		timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local)
-		mockComRepository.On("GetComByDate", timeNow).Return([]Comment{}, errors.New("error while GetComByDate()"))
+		mockComRepository.On("GetComByDate", timeNow, 1).Return([]Comment{}, errors.New("error while GetComByDate()"))
 		newService := NewService(mockComRepository, nil, nil)
-		_, err := newService.GetComByDate(timeNow)
+		_, err := newService.GetComByDate(timeNow, 1)
 		Expect(err).Should(HaveOccurred())
 	})
 	It("should EditCom successfully", func() {
 		timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local)
-		mockComRepository.On("EditCom", mock.AnythingOfType("Comment"), 1).Return(&Comment{
+		mockComRepository.On("EditCom", mock.AnythingOfType("Comment"), 1, 2).Return(&Comment{
 			ID:          1,
 			IDPost:      2,
 			IDUser:      1,
@@ -283,14 +283,14 @@ var _ = Describe("The Service Test", func() {
 			IDUser:      1,
 			DateComment: timeNow,
 			Content:     "content1",
-		}, 1)
+		}, 1, 2)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(comment.ID).Should(Equal(1))
 		Expect(comment.IDPost).Should(Equal(2))
 	})
 	It("should EditCom unsuccessfully", func() {
 		timeNow := time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local)
-		mockComRepository.On("EditCom", mock.AnythingOfType("Comment"), 2).Return(&Comment{}, errors.New("error while EditCom()"))
+		mockComRepository.On("EditCom", mock.AnythingOfType("Comment"), 2, 1).Return(&Comment{}, errors.New("error while EditCom()"))
 		newService := NewService(mockComRepository, nil, nil)
 		comment, err := newService.EditCom(Comment{
 			ID:          1,
@@ -298,7 +298,7 @@ var _ = Describe("The Service Test", func() {
 			IDUser:      1,
 			DateComment: timeNow,
 			Content:     "content1",
-		}, 2)
+		}, 2, 1)
 		Expect(err).Should(HaveOccurred())
 		Expect(comment).Should(BeNil())
 	})

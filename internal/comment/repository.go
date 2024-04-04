@@ -7,13 +7,13 @@ import (
 )
 
 type Repository interface {
-	CreateCom(com Comment) (*Comment, error)
+	CreateCom(com Comment, idPost int) (*Comment, error)
 	GetCom() ([]Comment, error)
 	GetComByID(idCom int) (*Comment, error)
 	GetComByPostID(idPost int) ([]Comment, error)
 	GetComByUserID(idUser int) ([]Comment, error)
-	GetComByDate(date time.Time) ([]Comment, error)
-	EditCom(com Comment, idCom int) (*Comment, error)
+	GetComByDate(date time.Time, idPost int) ([]Comment, error)
+	EditCom(com Comment, idCom int, idPost int) (*Comment, error)
 	DeleteCom(idCom int) error
 }
 
@@ -21,9 +21,9 @@ type repository struct {
 	db *sql.DB
 }
 
-func (r *repository) CreateCom(com Comment) (*Comment, error) {
+func (r *repository) CreateCom(com Comment, idPost int) (*Comment, error) {
 	res, err := r.db.Exec(`INSERT INTO Comment (IDPost, IDUser, DateComment, Content)
-VALUES (?, ?, ?, ?)`, com.IDPost, com.IDUser, com.DateComment, com.Content)
+VALUES (?, ?, ?, ?)`, idPost, com.IDUser, com.DateComment, com.Content)
 	if err != nil {
 		return nil, err
 	}
@@ -127,10 +127,10 @@ func (r *repository) GetComByUserID(idUser int) ([]Comment, error) {
 	return listCom, nil
 }
 
-func (r *repository) GetComByDate(date time.Time) ([]Comment, error) {
+func (r *repository) GetComByDate(date time.Time, idPost int) ([]Comment, error) {
 	dateFormat := date.Format("2006-01-02")
 	log.Println(dateFormat)
-	rows, err := r.db.Query(`SELECT * FROM Comment WHERE strftime('%Y-%m-%d', DateComment) = ?`, date.Format("2006-01-02"))
+	rows, err := r.db.Query(`SELECT * FROM Comment WHERE strftime('%Y-%m-%d', DateComment) = ? AND IDPost = ?`, date.Format("2006-01-02"), idPost)
 	if err != nil {
 		return nil, err
 	}
@@ -151,16 +151,26 @@ func (r *repository) GetComByDate(date time.Time) ([]Comment, error) {
 	}
 	return listCom, nil
 }
-func (r *repository) EditCom(com Comment, idCom int) (*Comment, error) {
+func (r *repository) EditCom(com Comment, idCom int, idPost int) (*Comment, error) {
 	_, err := r.db.Exec(`UPDATE Comment SET IDPost = ?, IDUser = ? , DateComment = ?, Content = ?
-WHERE ID = ?`, com.IDPost, com.IDUser, com.DateComment, com.Content, idCom)
+WHERE ID = ?`, idPost, com.IDUser, com.DateComment, com.Content, idCom)
 	if err != nil {
 		return nil, err
 	}
-	return &com, nil
+
+	editedCom, err := r.GetComByID(idCom)
+	if err != nil {
+		return nil, err
+	}
+
+	return editedCom, nil
 }
 func (r *repository) DeleteCom(idCom int) error {
-	_, err := r.db.Exec("DELETE FROM Comment WHERE ID = ?", idCom)
+	_, err := r.db.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Exec("DELETE FROM Comment WHERE ID = ?", idCom)
 	if err != nil {
 		return err
 	}

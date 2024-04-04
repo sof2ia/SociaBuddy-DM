@@ -19,6 +19,7 @@ type argGet struct {
 
 type argCreate struct {
 	name     string
+	idPost   int
 	newCom   Comment
 	output   *Comment
 	hasError error
@@ -41,12 +42,14 @@ type argIDList struct {
 type argDate struct {
 	name     string
 	date     time.Time
+	idPost   int
 	output   []Comment
 	hasError error
 }
 
 type argEdit struct {
 	name      string
+	idPost    int
 	editedCom Comment
 	id        int
 	output    *Comment
@@ -66,9 +69,7 @@ func TestCreateCom(t *testing.T) {
 	}
 	defer func(mockDB *sql.DB) {
 		_ = mockDB.Close()
-
 	}(mockDB)
-
 	customDate := time.Now().In(time.Local)
 	rep := NewRepository(mockDB)
 	mock.ExpectExec("INSERT INTO Comment").WithArgs(2, 1, customDate, "content1").WillReturnResult(sqlmock.NewResult(1, 1))
@@ -78,7 +79,8 @@ func TestCreateCom(t *testing.T) {
 	mock.ExpectQuery("SELECT \\* FROM Comment WHERE ID = ?").WithArgs(1).WillReturnRows(result)
 	test := []argCreate{
 		{
-			name: "CreateCom() is succeed",
+			name:   "CreateCom() is succeed",
+			idPost: 2,
 			newCom: Comment{
 				ID:          1,
 				IDPost:      2,
@@ -96,7 +98,8 @@ func TestCreateCom(t *testing.T) {
 			hasError: nil,
 		},
 		{
-			name: "CreateComment() when there is no result",
+			name:   "CreateComment() when there is no result",
+			idPost: 1,
 			newCom: Comment{
 				ID:          1,
 				IDPost:      2,
@@ -110,7 +113,7 @@ func TestCreateCom(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			comments, err := rep.CreateCom(tt.newCom)
+			comments, err := rep.CreateCom(tt.newCom, tt.idPost)
 			log.Printf("comments: %+v, err: %+v", comments, err)
 			if !reflect.DeepEqual(comments, tt.output) {
 				t.Fatalf("expected %+v, got %+v", tt.output, comments)
@@ -339,11 +342,12 @@ func TestGetComByDate(t *testing.T) {
 	result := sqlmock.NewRows([]string{
 		"ID", "IDPost", "IDUser", "DateComment", "Content",
 	}).AddRow(1, 2, 1, timeNow, "content1")
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM Comment WHERE strftime('%Y-%m-%d', DateComment) = ?")).WithArgs(time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local).Format("2006-01-02")).WillReturnRows(result)
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM Comment WHERE strftime('%Y-%m-%d', DateComment) = ? AND IDPost = ?")).WithArgs(time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local).Format("2006-01-02"), 2).WillReturnRows(result)
 
 	tests := []argDate{
 		{name: "GetComByDate() is succeed",
-			date: time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local),
+			date:   time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local),
+			idPost: 2,
 			output: []Comment{
 				{
 					ID:          1,
@@ -357,6 +361,7 @@ func TestGetComByDate(t *testing.T) {
 		},
 		{
 			name:     "GetComByDate() is failed",
+			idPost:   2,
 			date:     time.Date(2023, 11, 13, 0, 0, 0, 0, time.Local),
 			output:   nil,
 			hasError: errors.New("no comments on this date in database"),
@@ -364,7 +369,7 @@ func TestGetComByDate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			comments, err := rep.GetComByDate(tt.date)
+			comments, err := rep.GetComByDate(tt.date, tt.idPost)
 			log.Printf("comments: %+v, err: %+v", comments, err)
 			if !reflect.DeepEqual(comments, tt.output) {
 				t.Fatalf("expected %+v, got %+v", tt.output, comments)
@@ -387,8 +392,14 @@ func TestEditCom(t *testing.T) {
 	customDate := time.Now().In(time.Local)
 	rep := NewRepository(mockDB)
 	mock.ExpectExec("UPDATE Comment SET IDPost = ?, IDUser = ? , DateComment = ?, Content = ? WHERE ID = ?").WithArgs(2, 1, customDate, "content1", 1).WillReturnResult(sqlmock.NewResult(1, 1))
+	result := sqlmock.NewRows([]string{
+		"ID", "IDPost", "IDUser", "DateComment", "Content",
+	}).AddRow(1, 2, 1, customDate, "content1")
+	mock.ExpectQuery("SELECT \\* FROM Comment WHERE ID = ?").WithArgs(1).WillReturnRows(result)
 	test := []argEdit{
-		{name: "EditComment() is succeed",
+		{
+			name:   "EditComment() is succeed",
+			idPost: 2,
 			editedCom: Comment{
 				ID:          1,
 				IDPost:      2,
@@ -407,7 +418,8 @@ func TestEditCom(t *testing.T) {
 			hasError: nil,
 		},
 		{
-			name: "EditComment() is failed",
+			name:   "EditComment() is failed",
+			idPost: 1,
 			editedCom: Comment{
 				ID:          1,
 				IDPost:      2,
@@ -422,7 +434,7 @@ func TestEditCom(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			comment, err := rep.EditCom(tt.editedCom, tt.id)
+			comment, err := rep.EditCom(tt.editedCom, tt.id, tt.idPost)
 			log.Printf("comments: %+v, err: %+v", comment, err)
 			if !reflect.DeepEqual(comment, tt.output) {
 				t.Fatalf("expected %+v, got %+v", tt.output, comment)
@@ -434,7 +446,7 @@ func TestEditCom(t *testing.T) {
 	}
 }
 
-func TestRepository_DeleteCom(t *testing.T) {
+func TestDeleteCom(t *testing.T) {
 	mockDB, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("the creation of mock is failed %v", err)
@@ -444,7 +456,7 @@ func TestRepository_DeleteCom(t *testing.T) {
 
 	}(mockDB)
 	rep := NewRepository(mockDB)
-	mock.ExpectExec("PRAGMA foreign_keys = ON")
+	mock.ExpectExec("PRAGMA foreign_keys = ON").WithoutArgs().WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectExec("DELETE FROM Comment WHERE ID = ?").WithArgs(1).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	test := []argDelete{
