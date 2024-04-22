@@ -395,7 +395,7 @@ func TestEditCom(t *testing.T) {
 	result := sqlmock.NewRows([]string{
 		"ID", "IDPost", "IDUser", "DateComment", "Content",
 	}).AddRow(1, 2, 1, customDate, "content1")
-	mock.ExpectQuery("SELECT \\* FROM Comment WHERE ID = ?").WithArgs(1).WillReturnRows(result)
+	mock.ExpectQuery("SELECT * FROM Comment WHERE ID = ?").WithArgs(1).WillReturnRows(result)
 	test := []argEdit{
 		{
 			name:   "EditComment() is succeed",

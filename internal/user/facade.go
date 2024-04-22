@@ -39,7 +39,7 @@ func (f *facade) FindCep(cepUser string, number string, complement string) (*Add
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &Address{
 		ZipCode:      cepUser,
 		Country:      "Brasil",

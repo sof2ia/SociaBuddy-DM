@@ -350,11 +350,11 @@ func TestUpdateUser(t *testing.T) {
 		}
 	}(mockDB)
 	rep := NewRepository(mockDB)
-	mock.ExpectExec("UPDATE Users SET Name = ?, Age = ?, DocumentNumber = ?, Email = ?, Phone = ?, ZipCode = ?, Country = ?, State = ?, City = ?, Neighborhood = ?, Street = ?, Number = ?, Complement = ? WHERE ID = ?").WithArgs("Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 12345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C", 1).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("UPDATE Users SET Name = ?, Age = ?, DocumentNumber = ?, Email = ?, Phone = ?, ZipCode = ?, Country = ?, State = ?, City = ?, Neighborhood = ?, Street = ?, Number = ?, Complement = ? WHERE ID = ?").WithArgs("Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 92345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C", 1).WillReturnResult(sqlmock.NewResult(1, 1))
 	result := sqlmock.NewRows([]string{
 		"ID", "Name", "Age", "DocumentNumber", "Email", "Phone", "ZipCode", "Country", "State", "City", "Neighborhood", "Street", "Number", "Complement",
-	}).AddRow(1, "Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 12345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C")
-	mock.ExpectQuery("SELECT \\* FROM Users WHERE ID = ?").WithArgs(1).WillReturnRows(result)
+	}).AddRow(1, "Name First", 35, "123.345.567-89", "name.first@gmail.com", "+55 11 92345 6789", "12246-260", "Brasil", "SP", "São José dos Campos", "Parque Residencial Aquarius", "Avenida Salmão", "456", "C")
+	mock.ExpectQuery("SELECT * FROM Users WHERE ID = ?").WithArgs(1).WillReturnRows(result)
 
 	test := []argUpdate{
 		{
@@ -365,7 +365,7 @@ func TestUpdateUser(t *testing.T) {
 				Age:            35,
 				DocumentNumber: "123.345.567-89",
 				Email:          "name.first@gmail.com",
-				Phone:          "+55 11 12345 6789",
+				Phone:          "+55 11 92345 6789",
 				Address: Address{
 					ZipCode:      "12246-260",
 					Country:      "Brasil",
@@ -384,7 +384,7 @@ func TestUpdateUser(t *testing.T) {
 				Age:            35,
 				DocumentNumber: "123.345.567-89",
 				Email:          "name.first@gmail.com",
-				Phone:          "+55 11 12345 6789",
+				Phone:          "+55 11 92345 6789",
 				Address: Address{
 					ZipCode:      "12246-260",
 					Country:      "Brasil",
